@@ -1,13 +1,9 @@
 {
   "nxCloud": false,
-  "plugins": [
-    "@nx/dotnet"
-  ],
+  "plugins": ["@nx/dotnet"],
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     }
   }
 }

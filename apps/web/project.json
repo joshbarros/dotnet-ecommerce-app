@@ -5,17 +5,13 @@
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": [
-        "{workspaceRoot}/dist/apps/web"
-      ],
+      "outputs": ["{workspaceRoot}/dist/apps/web"],
       "options": {
         "browser": "apps/web/src/main.ts",
         "tsConfig": "apps/web/tsconfig.app.json",
         "index": "apps/web/src/index.html",
         "outputPath": "dist/apps/web",
-        "styles": [
-          "apps/web/src/styles.css"
-        ]
+        "styles": ["apps/web/src/styles.css"]
       },
       "configurations": {
         "production": {

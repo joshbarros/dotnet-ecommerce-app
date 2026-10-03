@@ -9,9 +9,7 @@
     },
     "build": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "restore"
-      ],
+      "dependsOn": ["restore"],
       "options": {
         "command": "dotnet build apps/api/Ecommerce.Api.csproj --no-restore"
       }
