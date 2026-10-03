@@ -1,0 +1,13 @@
+{
+  "nxCloud": false,
+  "plugins": [
+    "@nx/dotnet"
+  ],
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build api",
+      "type": "shell",
+      "command": "npx nx build api",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "start web",
+      "type": "shell",
+      "command": "npm run dev:web",
+      "problemMatcher": []
+    }
+  ]
+}

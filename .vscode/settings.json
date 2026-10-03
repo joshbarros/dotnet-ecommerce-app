@@ -1,0 +1,7 @@
+{
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
