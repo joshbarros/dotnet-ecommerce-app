@@ -1,0 +1,69 @@
+@if (product(); as p) {
+  <div class="breadcrumb">
+    <a routerLink="/">Home</a>
+    <span>/</span>
+    <a routerLink="/products">Shop</a>
+    <span>/</span>
+    <span>{{ p.name }}</span>
+  </div>
+  <section class="detail-layout">
+    <div class="detail-art"><app-product-art [product]="p" /></div>
+    <div class="detail-copy">
+      <p class="eyebrow">{{ p.category }} / THE EVERYDAY COLLECTION</p>
+      <h1>{{ p.name }}</h1>
+      <p class="detail-price">{{ p.price | currency: 'BRL' }}</p>
+      <p class="intro">{{ p.description }}</p>
+      <p class="stock-label" [class.sold-out]="!p.stock">
+        {{ p.stock ? p.stock + ' available in this demo' : 'Currently out of stock' }}
+      </p>
+      <div class="button-row">
+        <button class="button" [disabled]="!p.stock" (click)="store.addToCart(p.id)">
+          Add to bag →
+        </button>
+        <button
+          class="button button-outline"
+          (click)="store.toggleFavorite(p.id)"
+          [attr.aria-pressed]="store.wishlist().includes(p.id)"
+        >
+          {{ store.wishlist().includes(p.id) ? '♥ Saved' : '♡ Save for later' }}
+        </button>
+      </div>
+      <ul class="detail-perks">
+        <li>Demo shipping: R$25, free on orders from R$500</li>
+        <li>Illustrations represent fictional demo products</li>
+        <li>No payment processing or physical fulfillment</li>
+      </ul>
+      <details open>
+        <summary>Details & care</summary>
+        <p>
+          Designed for everyday use. Keep your gear clean and dry, and store it with care. Product
+          specifications are illustrative for this portfolio demo.
+        </p>
+      </details>
+      <details>
+        <summary>Shipping & returns</summary>
+        <p>
+          Orders are simulated and stored in this browser. No items are shipped.
+          <a routerLink="/shipping">Read more →</a>
+        </p>
+      </details>
+    </div>
+  </section>
+  <section class="section-block">
+    <div class="section-heading">
+      <h2>A good match</h2>
+      <a class="text-link" routerLink="/products">Explore all →</a>
+    </div>
+    <div class="product-grid catalog-grid">
+      @for (item of related(); track item.id) {
+        <app-product-card [product]="item" />
+      }
+    </div>
+  </section>
+} @else {
+  <div class="empty-state">
+    <h1>Product not found.</h1>
+    <p>This essential may have been removed from the demo.</p>
+    <a class="button" routerLink="/products">Back to the collection</a>
+  </div>
+}

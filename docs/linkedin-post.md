@@ -1,9 +1,9 @@
-I'm building DevStore as a learning project to deepen my C# and ASP.NET Core skills, alongside Angular in an Nx monorepo.
+I'm developing DevStore to practice Angular and C#/.NET in an Nx monorepo.
 
-The first milestone is a working catalog: real HTTP integration, BRL prices, loading/error states, Problem Details and a Docker Compose setup with an unprivileged Nginx reverse proxy.
+The frontend now includes catalog search and filtering, product details, favorites, cart, simulated checkout, local order history, demo account screens and local product management. Prices are in BRL, and the UI clearly identifies demo behavior.
 
-I verified native builds and six HTTP smoke tests on Linux, then built and ran both Docker images and repeated the tests through Nginx. It is still a catalog prototype, without checkout or payments.
+I'm taking a hands-on approach to the backend: the C# files are intentionally empty, with an implementation workbook covering EF Core/PostgreSQL, authentication, authorization, server-side stock and pricing, transactions and idempotency.
 
-Next: persistence with EF Core and PostgreSQL, followed by cart and simulated orders.
+This is a learning project, not a live store. No payment or delivery takes place. Native builds, frontend rule tests and Docker checks are recorded in the repository; browser review and a remote CI run remain separate verification steps.
 
 Repository: add the real URL after publication.

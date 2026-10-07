@@ -1,123 +1,66 @@
-import { Component, inject, signal } from "@angular/core";
-import { CurrencyPipe } from "@angular/common";
-import { Product, ProductsService } from "./products.service";
+import { Component, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { StoreService } from '../core/store.service';
+import { ProductCardComponent } from '../shared/product-card.component';
+
 @Component({
-  selector: "app-products",
-  imports: [CurrencyPipe],
-  template: ` <header>
-      <a class="brand" href="/products"
-        ><span class="logo">D</span> DevStore<span class="dot">.</span></a
-      ><span class="header-note">Thoughtful gear. Everyday use.</span
-      ><span class="badge">CATALOG DEMO</span>
-    </header>
-    <main>
-      <section class="hero">
-        <p class="eyebrow">THE EVERYDAY COLLECTION / 01</p>
-        <h1>Good things for<br />your <em>daily rhythm.</em></h1>
-        <p class="intro">
-          A few carefully chosen essentials for your workspace,<br />your
-          commute, and everything in between.
-        </p>
-        <div class="hero-foot">
-          <span>Built for the way you live</span
-          ><span>↓ Explore the collection</span>
-        </div>
-      </section>
-      <section aria-labelledby="collection">
-        <div class="section-heading">
-          <h2 id="collection">The essentials</h2>
-          <span>{{ products().length }} products · Prices in BRL</span>
-        </div>
-        @if (loading()) {
-          <p role="status" class="state">
-            Finding your next everyday essential…
-          </p>
-        } @else if (error()) {
-          <div role="alert" class="state">
-            <p>We couldn't load the collection.</p>
-            <button (click)="load()">Try again</button>
-          </div>
-        } @else if (!products().length) {
-          <p class="state">New essentials are on their way. Check back soon.</p>
-        } @else {
-          <div class="grid">
-            @for (product of products(); track product.id) {
-              <article>
-                <div class="art" [class]="'art art-' + product.id">
-                  <span class="art-label">DEVSTORE / 0{{ product.id }}</span>
-                  <div class="object">
-                    @switch (product.id) {
-                      @case (1) {
-                        <div class="keyboard">
-                          @for (key of keys; track $index) {
-                            <i></i>
-                          }
-                        </div>
-                      }
-                      @case (2) {
-                        <div class="headphones"><i></i><b></b></div>
-                      }
-                      @default {
-                        <div class="backpack"><i></i></div>
-                      }
-                    }
-                  </div>
-                </div>
-                <div class="product-body">
-                  <p class="category">{{ product.category }}</p>
-                  <h3>{{ product.name }}</h3>
-                  <p class="description">{{ product.description }}</p>
-                  <div class="product-foot">
-                    <strong>{{
-                      product.price
-                        | currency: "BRL" : "symbol" : "1.2-2" : "en-US"
-                    }}</strong
-                    ><span>{{ product.stock }} in stock</span>
-                  </div>
-                </div>
-              </article>
-            }
-          </div>
-        }
-      </section>
-      <aside>
-        <span class="aside-icon">✳</span>
-        <div>
-          <h3>A small collection. A considered choice.</h3>
-          <p>
-            This is a learning project. Checkout and payments are not available.
-          </p>
-        </div>
-      </aside>
-    </main>
-    <footer>
-      <span>© {{ year }} DevStore</span
-      ><span>Made with Angular + ASP.NET Core</span
-      ><span>Less, but better.</span>
-    </footer>`,
+  imports: [FormsModule, RouterLink, ProductCardComponent],
+  templateUrl: './products.page.html',
 })
 export class ProductsPage {
-  private readonly service = inject(ProductsService);
-  readonly products = signal<Product[]>([]);
-  readonly loading = signal(true);
-  readonly error = signal(false);
-  readonly keys = Array.from({ length: 40 });
-  readonly year = new Date().getFullYear();
-  constructor() {
-    this.load();
-  }
-  load() {
-    this.loading.set(true);
-    this.error.set(false);
-    this.service.list().subscribe({
-      next: (products) => {
-        this.products.set(products);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set(true);
-        this.loading.set(false);
-      },
+  readonly store = inject(StoreService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly params = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
+  readonly search = computed(() => this.params().get('q') ?? '');
+  readonly category = computed(() => this.params().get('category') ?? 'All');
+  readonly sort = computed(() => this.params().get('sort') ?? 'featured');
+  readonly inStock = computed(() => this.params().get('stock') === 'true');
+  readonly page = computed(() => {
+    const page = Number(this.params().get('page'));
+    return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+  });
+  readonly categories = computed(() => [
+    'All',
+    ...new Set(this.store.products().map((p) => p.category)),
+  ]);
+  readonly filtered = computed(() => {
+    const query = this.search().trim().toLowerCase();
+    const list = this.store
+      .products()
+      .filter(
+        (p) =>
+          (this.category() === 'All' || p.category === this.category()) &&
+          (!this.inStock() || p.stock > 0) &&
+          `${p.name} ${p.description} ${p.category}`.toLowerCase().includes(query),
+      );
+    return list.sort((a, b) =>
+      this.sort() === 'price-low'
+        ? a.price - b.price
+        : this.sort() === 'price-high'
+          ? b.price - a.price
+          : this.sort() === 'name'
+            ? a.name.localeCompare(b.name)
+            : Number(b.featured) - Number(a.featured),
+    );
+  });
+  readonly pages = computed(() => Math.max(1, Math.ceil(this.filtered().length / 6)));
+  readonly currentPage = computed(() => Math.min(this.page(), this.pages()));
+  readonly visible = computed(() =>
+    this.filtered().slice((this.currentPage() - 1) * 6, this.currentPage() * 6),
+  );
+  change(key: string, value: string | boolean | number) {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { [key]: value || null, ...(key !== 'page' ? { page: null } : {}) },
+      queryParamsHandling: 'merge',
     });
+  }
+  clear() {
+    void this.router.navigate(['/products']);
   }
 }

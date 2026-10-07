@@ -1,0 +1,22 @@
+<div class="page-heading">
+  <p class="eyebrow">KEEP THE GOOD THINGS CLOSE</p>
+  <h1>
+    Saved essentials
+    <span class="green">.</span>
+  </h1>
+  <p>Your favorites, all in one place.</p>
+</div>
+@if (store.favorites().length) {
+  <div class="product-grid catalog-grid">
+    @for (p of store.favorites(); track p.id) {
+      <app-product-card [product]="p" />
+    }
+  </div>
+} @else {
+  <div class="empty-state">
+    <span class="empty-icon">♡</span>
+    <h2>A little room for your favorites.</h2>
+    <p>Tap the heart on any product to save it here.</p>
+    <a class="button" routerLink="/products">Find your essentials</a>
+  </div>
+}

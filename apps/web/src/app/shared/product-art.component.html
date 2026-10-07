@@ -1,0 +1,35 @@
+<div class="product-art" [style.background]="product().color" aria-hidden="true">
+  <span class="art-label">DEVSTORE / {{ product().id.toString().padStart(2, '0') }}</span>
+  <div class="object">
+    @switch (product().kind) {
+      @case ('keyboard') {
+        <div class="keyboard">
+          @for (key of keys; track $index) {
+            <i></i>
+          }
+        </div>
+      }
+      @case ('headphones') {
+        <div class="headphones">
+          <i></i>
+          <b></b>
+        </div>
+      }
+      @case ('backpack') {
+        <div class="backpack"><i></i></div>
+      }
+      @case ('lamp') {
+        <div class="lamp">
+          <i></i>
+          <b></b>
+        </div>
+      }
+      @case ('mouse') {
+        <div class="mouse"><i></i></div>
+      }
+      @case ('bottle') {
+        <div class="bottle"><i></i></div>
+      }
+    }
+  </div>
+</div>

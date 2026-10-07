@@ -1,0 +1,95 @@
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="announcement">A considered collection · Demo shipping on us over R$500</div>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" routerLink="/" (click)="menuOpen.set(false)">
+      <span class="logo">D</span>
+      DevStore
+      <span class="brand-dot">.</span>
+    </a>
+    <button
+      class="menu-button icon-button"
+      (click)="menuOpen.set(!menuOpen())"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="main-navigation"
+    >
+      Menu
+    </button>
+    <nav
+      id="main-navigation"
+      class="main-nav"
+      [class.open]="menuOpen()"
+      aria-label="Main navigation"
+      (click)="menuOpen.set(false)"
+    >
+      <a routerLink="/products" routerLinkActive="active">Shop</a>
+      <a routerLink="/about" routerLinkActive="active">Our story</a>
+      <a routerLink="/help" routerLinkActive="active">Help</a>
+    </nav>
+    <nav class="utility-nav" aria-label="Your shopping">
+      <a routerLink="/wishlist" aria-label="Wishlist">
+        ♡
+        <span class="nav-label">Saved</span>
+      </a>
+      <a routerLink="/account">
+        <span class="nav-label">Account</span>
+        <span class="mobile-account">You</span>
+      </a>
+      <a routerLink="/cart" class="cart-link">
+        Bag
+        <span class="count">{{ store.cartCount() }}</span>
+      </a>
+    </nav>
+  </div>
+</header>
+<div class="demo-ribbon">
+  INTERACTIVE FRONTEND DEMO · No real accounts, payments or deliveries. Use fictional information.
+</div>
+@if (store.storageWarning()) {
+  <div role="alert" class="storage-warning">{{ store.storageWarning() }}</div>
+}
+<main id="main-content" class="page-shell"><router-outlet /></main>
+@if (store.notice()) {
+  <div role="status" class="toast">
+    <span>{{ store.notice() }}</span>
+    <button class="icon-button" (click)="store.notice.set('')" aria-label="Dismiss notification">
+      ×
+    </button>
+  </div>
+}
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div>
+      <a class="brand" routerLink="/">DevStore.</a>
+      <p>
+        Good things for your daily rhythm.
+        <br />
+        Thoughtful gear. Everyday use.
+      </p>
+      <span class="small-label">Built with Angular + ASP.NET Core</span>
+    </div>
+    <div>
+      <h3>Explore</h3>
+      <a routerLink="/products">The collection</a>
+      <a routerLink="/wishlist">Your favorites</a>
+      <a routerLink="/about">Our story</a>
+    </div>
+    <div>
+      <h3>Need a hand?</h3>
+      <a routerLink="/help">Help & FAQ</a>
+      <a routerLink="/shipping">Shipping & returns</a>
+      <a routerLink="/contact">Contact</a>
+    </div>
+    <div>
+      <h3>The project</h3>
+      <a routerLink="/privacy">Privacy</a>
+      <a routerLink="/terms">Demo terms</a>
+      <a routerLink="/admin">Demo management</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© {{ year }} DevStore</span>
+    <span>Prices in BRL · Portfolio learning project</span>
+    <button class="text-button" (click)="store.resetDemo()">Reset demo data</button>
+  </div>
+</footer>

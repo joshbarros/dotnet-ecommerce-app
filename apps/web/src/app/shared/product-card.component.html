@@ -1,0 +1,35 @@
+<article class="product-card">
+  <a [routerLink]="['/products', product().id]" [attr.aria-label]="'View ' + product().name">
+    <app-product-art [product]="product()" />
+  </a>
+  <button
+    class="favorite-button"
+    (click)="store.toggleFavorite(product().id)"
+    [attr.aria-label]="
+      (store.wishlist().includes(product().id) ? 'Remove ' : 'Save ') + product().name
+    "
+    [attr.aria-pressed]="store.wishlist().includes(product().id)"
+  >
+    {{ store.wishlist().includes(product().id) ? '♥' : '♡' }}
+  </button>
+  <div class="product-body">
+    <p class="eyebrow">{{ product().category }}</p>
+    <h3>
+      <a [routerLink]="['/products', product().id]">{{ product().name }}</a>
+    </h3>
+    <p class="product-copy">{{ product().description }}</p>
+    <div class="product-foot">
+      <strong>{{ product().price | currency: 'BRL' }}</strong>
+      <span [class.sold-out]="!product().stock">
+        {{ product().stock ? product().stock + ' in stock' : 'Out of stock' }}
+      </span>
+    </div>
+    <button
+      class="button button-outline full-width"
+      (click)="store.addToCart(product().id)"
+      [disabled]="!product().stock"
+    >
+      {{ product().stock ? 'Add to cart' : 'Unavailable' }}
+    </button>
+  </div>
+</article>

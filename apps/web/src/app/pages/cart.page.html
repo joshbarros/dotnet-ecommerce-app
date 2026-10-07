@@ -1,0 +1,92 @@
+<div class="breadcrumb">
+  <a routerLink="/">Home</a>
+  <span>/</span>
+  <span>Your bag</span>
+</div>
+<div class="page-heading">
+  <p class="eyebrow">YOUR EVERYDAY, UPGRADED</p>
+  <h1>
+    Your bag
+    <span class="green">.</span>
+  </h1>
+  <p>{{ store.cartCount() }} essentials, ready when you are.</p>
+</div>
+@if (store.cartItems().length) {
+  <div class="checkout-layout">
+    <section class="cart-list" aria-label="Cart items">
+      @for (line of store.cartItems(); track line.product.id) {
+        <article class="cart-row">
+          <a class="cart-art" [routerLink]="['/products', line.product.id]">
+            <app-product-art [product]="line.product" />
+          </a>
+          <div class="cart-description">
+            <span class="eyebrow">{{ line.product.category }}</span>
+            <h3>
+              <a [routerLink]="['/products', line.product.id]">{{ line.product.name }}</a>
+            </h3>
+            <p>{{ line.product.price | currency: 'BRL' }} each</p>
+            <button
+              class="text-button"
+              (click)="store.removeFromCart(line.product.id)"
+              [attr.aria-label]="'Remove ' + line.product.name"
+            >
+              Remove
+            </button>
+          </div>
+          <div class="cart-quantity">
+            <div class="quantity-control">
+              <button
+                (click)="store.setQuantity(line.product.id, line.quantity - 1)"
+                [disabled]="line.quantity === 1"
+                [attr.aria-label]="'Decrease ' + line.product.name + ' quantity'"
+              >
+                −
+              </button>
+              <span aria-live="polite">{{ line.quantity }}</span>
+              <button
+                (click)="store.setQuantity(line.product.id, line.quantity + 1)"
+                [disabled]="line.quantity >= line.product.stock"
+                [attr.aria-label]="'Increase ' + line.product.name + ' quantity'"
+              >
+                +
+              </button>
+            </div>
+            <strong>{{ line.product.price * line.quantity | currency: 'BRL' }}</strong>
+          </div>
+        </article>
+      }
+      <a routerLink="/products" class="text-link">← Keep exploring</a>
+    </section>
+    <aside class="summary-card">
+      <h2>Order summary</h2>
+      <dl>
+        <div>
+          <dt>Subtotal</dt>
+          <dd>{{ store.subtotal() | currency: 'BRL' }}</dd>
+        </div>
+        <div>
+          <dt>Demo shipping</dt>
+          <dd>{{ store.shipping() ? (store.shipping() | currency: 'BRL') : 'Free' }}</dd>
+        </div>
+        <div class="total">
+          <dt>Total</dt>
+          <dd>{{ store.total() | currency: 'BRL' }}</dd>
+        </div>
+      </dl>
+      @if (store.subtotal() < 500) {
+        <p class="muted">
+          Add {{ 500 - store.subtotal() | currency: 'BRL' }} for free demo shipping.
+        </p>
+      }
+      <a routerLink="/checkout" class="button full-width">Continue to demo checkout →</a>
+      <p class="small-label">No real payment. No card details required.</p>
+    </aside>
+  </div>
+} @else {
+  <div class="empty-state">
+    <span class="empty-icon">◇</span>
+    <h2>Your bag is taking a breather.</h2>
+    <p>Find a few good things for your everyday.</p>
+    <a class="button" routerLink="/products">Explore the collection</a>
+  </div>
+}

@@ -1,0 +1,208 @@
+<div class="content-page">
+  @switch (page()) {
+    @case ('about') {
+      <p class="eyebrow">OUR STORY</p>
+      <h1>
+        Less, but
+        <br />
+        <em>better.</em>
+      </h1>
+      <p class="intro">
+        A small collection, a little more care. DevStore brings everyday essentials into one
+        considered space.
+      </p>
+      <div class="story-banner">
+        <span class="story-symbol">✳</span>
+        <h2>Built for your daily rhythm.</h2>
+      </div>
+      <h2>A project with a purpose</h2>
+      <p>
+        DevStore is a portfolio learning project. The storefront is built with Angular in an Nx
+        monorepo. The ASP.NET Core backend is an implementation exercise, with empty C# files and
+        documented contracts.
+      </p>
+      <h2>Honest by design</h2>
+      <p>
+        Products, inventory, accounts and orders are fictional. The frontend saves demo state in
+        your browser. There is no payment processing, physical delivery or real customer
+        authentication.
+      </p>
+      <a class="button" routerLink="/products">Explore the collection</a>
+    }
+    @case ('help') {
+      <p class="eyebrow">A LITTLE HELP</p>
+      <h1>
+        Good questions.
+        <br />
+        Simple answers.
+      </h1>
+      <p class="intro">Everything you need to know about exploring the demo.</p>
+      <details open>
+        <summary>Can I buy these products?</summary>
+        <p>
+          No. Products are fictional, and checkout creates only a local demo order. Nothing is
+          charged or shipped.
+        </p>
+      </details>
+      <details>
+        <summary>Where is my cart saved?</summary>
+        <p>
+          In browser local storage. Your bag, favorites, demo profile and orders survive refreshes
+          on the same origin. Another browser or port has separate demo data.
+        </p>
+      </details>
+      <details>
+        <summary>Does the demo password authenticate me?</summary>
+        <p>
+          The account pages validate fictional credentials but do not authenticate you or save your
+          password. Real authentication will be implemented in the backend exercise.
+        </p>
+      </details>
+      <details>
+        <summary>How do I reset the demo?</summary>
+        <p>
+          Use “Reset demo data” in the footer. It clears local orders and profile, empties your cart
+          and favorites, and restores the original catalog.
+        </p>
+      </details>
+      <details>
+        <summary>Can I manage products?</summary>
+        <p>
+          The demo management screens let you create, edit and delete products in this browser. They
+          are publicly visible demonstrations, not a protected admin system.
+        </p>
+      </details>
+      <details>
+        <summary>Will I receive an order email?</summary>
+        <p>No emails are sent. You can find your local order in the demo orders page.</p>
+      </details>
+      <a class="text-link" routerLink="/contact">Still curious? Contact demo →</a>
+    }
+    @case ('shipping') {
+      <p class="eyebrow">SHIPPING & RETURNS</p>
+      <h1>
+        No surprises.
+        <br />
+        Just a demonstration.
+      </h1>
+      <h2>Demo shipping rules</h2>
+      <p>
+        The UI calculates R$25 shipping for demo orders under R$500 and free shipping for orders of
+        R$500 or more. This is a local illustration, not a carrier quote.
+      </p>
+      <h2>No physical deliveries</h2>
+      <p>
+        No products are shipped. No tracking numbers, delivery dates or commercial return guarantees
+        are provided.
+      </p>
+      <h2>Returns</h2>
+      <p>
+        No purchase takes place, so there is nothing to return. To start over, reset the demo data
+        in the footer.
+      </p>
+      <a class="button button-outline" routerLink="/products">Back to the collection</a>
+    }
+    @case ('privacy') {
+      <p class="eyebrow">PRIVACY IN THIS DEMO</p>
+      <h1>
+        Your browser.
+        <br />
+        Your demo data.
+      </h1>
+      <h2>Use fictional information</h2>
+      <p>
+        This learning project is not intended to collect real personal information. Use a fictional
+        name, example.com email and fictional delivery address.
+      </p>
+      <h2>Local storage</h2>
+      <p>
+        The frontend stores the catalog, cart, favorites, demo profile and demo orders in local
+        storage under “devstore.demo.v1”. Fictional password fields demonstrate validation only and
+        are never saved or sent. No card details are requested. No data is sent to an API by the
+        current demo.
+      </p>
+      <h2>Clear your data</h2>
+      <p>
+        Use “Reset demo data” in the footer or clear this site's browser storage. Storage belongs to
+        this origin and is accessible to anyone using the same browser profile.
+      </p>
+      <h2>Fonts and external resources</h2>
+      <p>
+        Typography uses system fonts. Product illustrations are CSS. This demo does not require an
+        external font or image provider.
+      </p>
+      <h2>Future implementation</h2>
+      <p>
+        Real accounts and backend persistence need an appropriate privacy policy and data-handling
+        design before public use.
+      </p>
+    }
+    @case ('terms') {
+      <p class="eyebrow">DEMO TERMS</p>
+      <h1>
+        A learning project.
+        <br />
+        Openly presented.
+      </h1>
+      <h2>Demonstration only</h2>
+      <p>
+        DevStore is a portfolio frontend and a backend learning scaffold. Listed products, prices,
+        stock and orders are fictional. No commercial agreement, payment or delivery is created.
+      </p>
+      <h2>Local management</h2>
+      <p>
+        Admin screens demonstrate UI workflows. They do not enforce permissions. Changes apply only
+        to your browser. Do not treat local storage or UI routing as access control.
+      </p>
+      <h2>Availability</h2>
+      <p>
+        Demo information can be changed or reset. Browser storage can be cleared or become
+        unavailable. Do not use the project for real orders until its backend and security are
+        implemented and verified.
+      </p>
+    }
+    @case ('contact') {
+      <p class="eyebrow">SAY HELLO</p>
+      <h1>
+        A little conversation
+        <br />
+        goes a long way.
+      </h1>
+      <p class="intro">Explore a contact form. No message is actually sent or stored.</p>
+      @if (sent()) {
+        <div class="info-note" role="status">
+          Demo complete. Your form was validated, but no message was sent.
+        </div>
+        <button class="button button-outline" (click)="sent.set(false); submitted.set(false)">
+          Try another demo message
+        </button>
+      } @else {
+        <form class="panel" [formGroup]="form" (ngSubmit)="send()" novalidate>
+          <label>
+            Demo name
+            <input formControlName="name" placeholder="Alex Example" />
+          </label>
+          <label>
+            Demo email
+            <input type="email" formControlName="email" placeholder="alex@example.com" />
+          </label>
+          <label>
+            Message
+            <textarea
+              formControlName="message"
+              rows="5"
+              placeholder="Use at least 10 characters."
+              maxlength="1000"
+            ></textarea>
+          </label>
+          @if (submitted() && form.invalid) {
+            <p class="field-error" role="alert">
+              Enter a name, valid email and message of 10–1,000 characters.
+            </p>
+          }
+          <button class="button" type="submit">Try demo contact form →</button>
+        </form>
+      }
+    }
+  }
+</div>

@@ -1,0 +1,95 @@
+<section class="auth-layout">
+  <div class="auth-story">
+    <p class="eyebrow">WELCOME TO YOUR EVERYDAY</p>
+    <h1>
+      Good things.
+      <br />
+      A little closer.
+    </h1>
+    <p>Keep your favorites, explore your demo orders and make yourself at home.</p>
+    <span class="auth-decoration">✳</span>
+  </div>
+  <form class="panel auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <p class="eyebrow">DEMO ACCOUNT</p>
+    <h2>{{ register() ? 'Make yourself at home.' : 'Welcome back.' }}</h2>
+    <p class="muted">
+      {{ register() ? 'Create a local demo profile.' : 'Try the demo sign-in form.' }}
+    </p>
+    <div class="info-note">
+      Use fictional credentials. This form demonstrates validation, not authentication. Passwords
+      are discarded and never saved or sent.
+    </div>
+    @if (register()) {
+      <label>
+        Display name
+        <input
+          formControlName="name"
+          placeholder="Alex Example"
+          autocomplete="off"
+          [attr.aria-invalid]="
+            form.controls.name.invalid && (submitted() || form.controls.name.touched)
+          "
+        />
+        @if (form.controls.name.invalid && (submitted() || form.controls.name.touched)) {
+          <small class="field-error">Enter a display name.</small>
+        }
+      </label>
+    }
+    <label>
+      Demo email
+      <input
+        type="email"
+        formControlName="email"
+        placeholder="alex@example.com"
+        autocomplete="off"
+        [attr.aria-invalid]="
+          form.controls.email.invalid && (submitted() || form.controls.email.touched)
+        "
+      />
+      @if (form.controls.email.invalid && (submitted() || form.controls.email.touched)) {
+        <small class="field-error">Enter a valid email address.</small>
+      }
+    </label>
+    <label>
+      Fictional password
+      <input
+        type="password"
+        formControlName="password"
+        autocomplete="off"
+        placeholder="At least 8 characters"
+        [attr.aria-invalid]="
+          form.controls.password.invalid && (submitted() || form.controls.password.touched)
+        "
+      />
+      @if (form.controls.password.invalid && (submitted() || form.controls.password.touched)) {
+        <small class="field-error">Use a fictional password of at least 8 characters.</small>
+      }
+    </label>
+    @if (register()) {
+      <label>
+        Confirm fictional password
+        <input
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="off"
+          placeholder="Repeat your fictional password"
+        />
+        @if (
+          (form.controls.confirmPassword.invalid || form.hasError('passwordMismatch')) &&
+          (submitted() || form.controls.confirmPassword.touched)
+        ) {
+          <small class="field-error">The fictional passwords must match.</small>
+        }
+      </label>
+    }
+    <button class="button full-width" type="submit">
+      {{ register() ? 'Create demo profile →' : 'Enter demo account →' }}
+    </button>
+    <p class="auth-switch">
+      {{ register() ? 'Already exploring?' : 'New to DevStore?' }}
+      <a [routerLink]="register() ? '/login' : '/register'">
+        {{ register() ? 'Demo sign in' : 'Create a demo profile' }}
+      </a>
+    </p>
+  </form>
+</section>

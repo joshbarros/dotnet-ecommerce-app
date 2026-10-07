@@ -1,0 +1,111 @@
+import { Product } from './models';
+export const INITIAL_PRODUCTS: Product[] = [
+  {
+    id: 1,
+    name: 'Mechanical Keyboard',
+    description:
+      'Tactile switches, a compact layout and a warm desk glow. A considered companion for your best work.',
+    price: 349.9,
+    stock: 12,
+    category: 'Workspace',
+    kind: 'keyboard',
+    color: '#e8eddf',
+    featured: true,
+  },
+  {
+    id: 2,
+    name: 'Studio Headphones',
+    description:
+      'Clear sound, soft cushions and an adjustable fit. Find a little more focus in your everyday.',
+    price: 499.9,
+    stock: 8,
+    category: 'Audio',
+    kind: 'headphones',
+    color: '#e7e5e0',
+    featured: true,
+  },
+  {
+    id: 3,
+    name: 'Everyday Backpack',
+    description:
+      'A lightweight home for your laptop and daily essentials. Thoughtful pockets, comfortable straps, timeless shape.',
+    price: 229.9,
+    stock: 20,
+    category: 'Everyday',
+    kind: 'backpack',
+    color: '#e9e4d9',
+    featured: true,
+  },
+  {
+    id: 4,
+    name: 'Focus Desk Lamp',
+    description:
+      'Warm, gentle light with a simple adjustable head. Make space for a slower evening.',
+    price: 189.9,
+    stock: 9,
+    category: 'Workspace',
+    kind: 'lamp',
+    color: '#e7e8df',
+    featured: true,
+  },
+  {
+    id: 5,
+    name: 'Wireless Mouse',
+    description:
+      'A quiet click and a comfortable profile. A small upgrade for the things you do every day.',
+    price: 129.9,
+    stock: 18,
+    category: 'Workspace',
+    kind: 'mouse',
+    color: '#e3e8ed',
+    featured: false,
+  },
+  {
+    id: 6,
+    name: 'Daily Water Bottle',
+    description:
+      'An insulated stainless steel bottle for wherever the day takes you. 750 ml of everyday simplicity.',
+    price: 89.9,
+    stock: 24,
+    category: 'Everyday',
+    kind: 'bottle',
+    color: '#e3e8dd',
+    featured: false,
+  },
+  {
+    id: 7,
+    name: 'Travel Headphones',
+    description:
+      'A compact companion for playlists, podcasts and long journeys. Foldable design with padded ear cups.',
+    price: 299.9,
+    stock: 6,
+    category: 'Audio',
+    kind: 'headphones',
+    color: '#eee4df',
+    featured: false,
+  },
+  {
+    id: 8,
+    name: 'Weekend Backpack',
+    description:
+      'Room for an extra layer, a good book and an unplanned adventure. Durable fabric in an easygoing silhouette.',
+    price: 279.9,
+    stock: 0,
+    category: 'Everyday',
+    kind: 'backpack',
+    color: '#e3e6ee',
+    featured: false,
+  },
+  {
+    id: 9,
+    name: 'Compact Keyboard',
+    description:
+      'A smaller footprint for a clearer desk. Low-profile keys and a comfortable typing experience.',
+    price: 249.9,
+    stock: 7,
+    category: 'Workspace',
+    kind: 'keyboard',
+    color: '#ece6df',
+    featured: false,
+  },
+];

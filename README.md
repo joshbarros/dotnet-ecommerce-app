@@ -1,79 +1,114 @@
 # DevStore
 
-A learning and portfolio project: an English storefront with BRL prices, an Angular client and a C# ASP.NET Core API in an Nx monorepo.
+A complete interactive ecommerce frontend and an intentionally empty C# backend workbook, in an Nx monorepo. English UI, BRL prices, Angular 21 and .NET 10.
 
-## Prerequisites
+## What works today
 
-- Node.js 22.12 or newer in the Node 22 line, npm 10.
-- .NET SDK 10.0.401 (see `global.json`). .NET 10 is an LTS release.
-- Docker Engine and Docker Compose for the container workflow.
-- VS Code with C# Dev Kit, Angular Language Service and Nx Console (recommended).
+- Home, searchable/filterable/sortable/paginated catalog, product detail and wishlist.
+- Cart with quantity controls, stock limits, removal and totals.
+- Validated simulated checkout, confirmation, order history and order detail.
+- Validated demo sign-in/registration forms and editable local profile.
+- Demo management dashboard, product create/edit/delete and order status updates.
+- About, FAQ, shipping/returns, contact-form demonstration, privacy, demo terms and 404.
+- Responsive layouts, CSS product illustrations, keyboard focus states and route titles.
+- Local persistence for cart, favorites, profile, product changes and demo orders.
 
-A local SDK was installed in `.local/dotnet` on this laptop. It is ignored by Git and is not included in Docker builds. From the repository root, run `source scripts/dev-env.sh` before using it. Other machines can use a normal .NET installation and do not need that script.
+This is **not a real commerce backend**. No payment is collected, no email is sent, nothing is delivered and no real authentication occurs. Use fictional information. Demo management is openly accessible and modifies only browser state.
 
-## Native development
+## Run the frontend
+
+Prerequisites: Node 22.12+ in the Node 22 line, npm 10, .NET SDK 10.0.401 for the Nx .NET plugin. Docker Engine with Compose is optional.
 
 ```bash
-# Only on this laptop when using the local SDK:
+# This laptop has an ignored local SDK. Other machines can use a regular SDK install.
 source scripts/dev-env.sh
 npm ci
-npm run build
 npm run dev
 ```
 
-Open http://localhost:4200/products. The API listens on http://localhost:5207. Angular's development proxy forwards `/api/**` to it. Use `npm run dev:api` or `npm run dev:web` to start a single app. `npm run graph` opens the Nx graph. The API build explicitly depends on restore, including on a clean checkout.
+Open http://localhost:4200. `npm run dev` starts only Angular; a running API is not required. `npm run dev:web` does the same.
 
 ```bash
-API_BASE_URL=http://localhost:5207 WEB_BASE_URL=http://localhost:4200 npm run test:smoke
+npm run build
+npm run test:frontend
+WEB_BASE_URL=http://localhost:4200 npm run test:smoke
 ```
+
+`npm run build` compiles Angular and the empty API library. `dotnet build Ecommerce.sln` additionally compiles the empty future test project. This proves the scaffold is syntactically buildable, not that API functionality exists.
 
 ## Docker
 
 ```bash
 docker compose config --quiet
 docker compose up --build --detach --wait
-API_BASE_URL=http://localhost:8080 WEB_BASE_URL=http://localhost:8080 npm run test:smoke
-docker compose ps
-docker compose logs
+WEB_BASE_URL=http://localhost:8080 npm run test:smoke
 ```
 
-Open http://localhost:8080/products. Only Nginx publishes a port, bound to loopback. Copy `.env.example` to `.env` to change `WEB_PORT`; update test URLs accordingly. Stop services with `npm run docker:down`.
+Open http://localhost:8080. Only web starts by default and its health check verifies Nginx. The web build stage includes Node and .NET for Nx project discovery. The final web image contains static files and unprivileged Nginx, with the port bound to loopback.
 
-The multi-stage Dockerfile produces two final images. The Angular build stage includes Node and .NET because the Nx .NET plugin inspects the API project. The final web image contains Nginx and static assets only. Both final containers run without root. Nginx proxies `/api/` and uses Docker DNS; other routes fall back to the Angular document. The web health check reaches the API through Nginx.
+The API service is behind the `backend` Compose profile. **Do not start it while the API is an empty library.** After implementing `Program.cs` and removing `OutputType=Library`, use `docker compose --profile backend up --build --detach --wait`. Nginx already reserves `/api/` for the API proxy, rather than returning the SPA document for those requests. Until the API exists, these routes can return 502.
 
-## Architecture and endpoints
+Copy `.env.example` to `.env` to change `WEB_PORT`. Stop the current frontend with `npm run docker:down`. If an old catalog API container remains from the earlier checkpoint, stop it with `docker compose stop api`.
 
-```text
-Browser → Angular ProductsPage → ProductsService → /api/products
-                      Development proxy / production Nginx
-                                       ↓
-                     ASP.NET Core ProductsController → Product records
+## Pages
+
+| Route | Page |
+| --- | --- |
+| `/` | Home and featured collection |
+| `/products` | Search, category, stock filter, sort and pagination |
+| `/products/:id` | Product detail and related essentials |
+| `/wishlist` | Saved essentials |
+| `/cart` | Bag and totals |
+| `/checkout` | Validated local demo checkout |
+| `/orders/:id/confirmation` | Demo confirmation |
+| `/orders`, `/orders/:id` | Local order history and details |
+| `/login`, `/register`, `/account` | Demo profile screens; no real authentication |
+| `/admin`, `/admin/products`, `/admin/products/new`, `/admin/products/:id`, `/admin/orders` | Local management demonstration |
+| `/about`, `/help`, `/shipping`, `/contact`, `/privacy`, `/terms` | Information and contact-form demonstration |
+| Any unmatched route | 404 page |
+
+Routes load page components lazily. Query filters are preserved in the catalog URL. Router navigation restores scroll positions. The demo storage key is `devstore.demo.v1`, scoped to the current origin: ports 4200 and 8080 have separate saved state. “Reset demo data” in the footer resets the catalog, cart, favorites, profile and orders.
+
+## Backend: write it yourself
+
+All hand-written `.cs` files in `apps/api` and `tests/api` are empty by request. The project temporarily compiles as a library. API execution, F5 debugging and API smoke tests become useful after you implement the entry point and endpoints.
+
+Start with [the backend workbook](docs/backend-roadmap.md). It maps each empty file to its responsibility and provides incremental acceptance criteria. [API contracts](docs/api-contracts.md) describe the intended frontend/backend interface.
+
+The former catalog API is preserved locally in `.local/backend-before-learning` and in the original Git history. No C# business logic, database packages, migrations or authentication implementation has been added for you.
+
+The first exercise: implement `Program.cs`, remove `<OutputType>Library</OutputType>` from the API project, return a health response, and run `npm run dev:api`. Then write the Product model and list/detail endpoints. Prices should use `decimal`.
+
+## Source map
+
+- `apps/web/src/app/app.routes.ts`: all frontend routes.
+- `apps/web/src/app/core/models.ts`: frontend data contracts.
+- `apps/web/src/app/core/catalog.data.ts`: fictional seed products.
+- `apps/web/src/app/core/store.service.ts`: local demo rules/state and persistence.
+- `apps/web/src/app/pages`: page components and templates.
+- `apps/web/src/app/shared`: reusable product cards and illustrations.
+- `apps/web/src/app/products/products.service.ts`: optional HTTP catalog reads for future integration; current demo pages do not use them.
+- `apps/api`: empty controllers, contracts, models, data, services and validation files.
+- `tests/api`: empty future C# test files.
+
+## Formatting and VS Code
+
+```bash
+source scripts/dev-env.sh
+# Restore first on a clean checkout:
+dotnet restore Ecommerce.sln
+npm run format
+npm run format:check
 ```
 
-- `GET /api/health`: readiness response `Healthy`.
-- `GET /api/products`: sample product collection.
-- `GET /api/products/{id}`: product or HTTP 404 Problem Details.
+Prettier handles TypeScript, CSS and Angular HTML templates. `.editorconfig` and `dotnet format` handle C#. Install the recommended VS Code extensions for formatting on save. Formatting is separate from linting.
 
-Source: `apps/api/Controllers/ProductsController.cs`, `apps/api/Models/Product.cs`, and `apps/web/src/app/products/`. Money uses C# `decimal`. Angular uses standalone components, signals, Router and HttpClient. The catalog handles loading, empty and error states, with retry. Product illustrations use CSS.
+Once your API has an entry point, open `Ecommerce.sln` in C# Dev Kit. Start Angular separately, stop any independently running API on port 5207, and use **C# API (F5)**. The debug configuration targets the `net10.0` DLL.
 
-## Debugging and learning
+## Verification and limitations
 
-1. Source the local SDK environment, then launch VS Code from that terminal (`code .`). Open `Ecommerce.sln` with C# Dev Kit.
-2. Stop a separately running API to free port 5207. Start Angular with `npm run dev:web`.
-3. Set a breakpoint on `var product = ...` inside `GetById`.
-4. Choose **C# API (F5)** and request http://localhost:5207/api/products/1.
-5. Inspect `id` and `product` in Variables/Watch. Press F10 to step or F5 to continue.
+Frontend tests execute the actual Angular store and login/registration form logic using Node, TypeScript transpilation and the Angular runtime. HTTP smoke tests request the SPA document at each route; they do not execute page components or prove visual behavior. The API smoke tests cover the intended paged catalog contract and are available as `npm run test:api:smoke`, for when you implement those endpoints.
 
-A C# record resembles a TypeScript data object, but its type exists at runtime and this positional record exposes init-only properties. `decimal` is suited to monetary values; TypeScript `number` uses binary floating-point. Angular's service is injected just as ASP.NET services are resolved by dependency injection.
+See [validation](docs/validation.md) and [manual frontend checklist](docs/frontend-checklist.md). No connected browser was available for visual verification during development. Desktop/mobile review and end-to-end interaction testing remain outstanding. No screenshot is claimed. The updated GitHub Actions workflow has not run remotely. Nothing was published.
 
-Exercise: add a fourth product in the controller, build the API, and check that Angular displays it. Then request a missing ID and inspect the Problem Details response.
-
-## Validation and limitations
-
-See `docs/validation.md` for checks actually executed on Linux. The smoke suite covers health, product contract, lookup, missing-product errors, unknown API routes and direct SPA navigation. `WEB_BASE_URL` is required to include the SPA test.
-
-This is an in-memory catalog prototype. Persistence, product management, authentication, cart, checkout and payments are not implemented. A future increment will introduce EF Core/PostgreSQL with migrations and a persistent volume. No public deployment has been performed. Configure the actual hostname in `AllowedHosts` before deployment.
-
-The GitHub Actions workflow builds Compose and runs smoke tests, but no workflow run has been verified. Browser interaction and responsive rendering require a browser review; HTTP smoke tests do not prove those behaviors. There are no screenshots yet.
-
-The lockfile includes overrides for patched build dependencies (`piscina`, `axios`, `smol-toml`, `brace-expansion`). These avoid major framework changes and should be reviewed when upgrading Nx/Angular. No secrets or generated build artifacts belong in Git.
+The next real-commerce steps are server-side persistence, authentication/authorization, validated pricing and stock, transactional order creation, idempotency and integration tests. They are described in the backend workbook so you can implement and compile them yourself.

@@ -1,0 +1,67 @@
+@if (order(); as order) {
+  <div class="page-heading" [class.centered]="confirmation()">
+    @if (confirmation()) {
+      <span class="success-mark">✓</span>
+    }
+    <p class="eyebrow">{{ confirmation() ? 'A LITTLE MORE EVERYDAY' : 'DEMO ORDER DETAILS' }}</p>
+    <h1>{{ confirmation() ? 'Your demo order is confirmed.' : order.id }}</h1>
+    <p>
+      {{
+        confirmation()
+          ? 'Thanks for exploring DevStore. No charge was made and nothing will be shipped.'
+          : 'This order exists only in your browser.'
+      }}
+    </p>
+    <span class="status-pill">{{ order.status }} · {{ order.createdAt | date: 'medium' }}</span>
+  </div>
+  <div class="checkout-layout">
+    <section class="panel">
+      <h2>Order {{ order.id }}</h2>
+      @for (item of order.items; track item.productId) {
+        <div class="receipt-row">
+          <div>
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.quantity }} × {{ item.price | currency: 'BRL' }}</p>
+          </div>
+          <strong>{{ item.price * item.quantity | currency: 'BRL' }}</strong>
+        </div>
+      }
+      <dl class="receipt-totals">
+        <div>
+          <dt>Subtotal</dt>
+          <dd>{{ order.subtotal | currency: 'BRL' }}</dd>
+        </div>
+        <div>
+          <dt>Demo shipping</dt>
+          <dd>{{ order.shipping | currency: 'BRL' }}</dd>
+        </div>
+        <div class="total">
+          <dt>Total</dt>
+          <dd>{{ order.total | currency: 'BRL' }}</dd>
+        </div>
+      </dl>
+    </section>
+    <aside class="panel">
+      <h2>Demo delivery</h2>
+      <p>
+        {{ order.delivery.name }}
+        <br />
+        {{ order.delivery.street }}
+        <br />
+        {{ order.delivery.city }}, {{ order.delivery.state }}
+        <br />
+        {{ order.delivery.postalCode }}
+      </p>
+      <p>{{ order.delivery.email }}</p>
+      <div class="info-note">No email was sent. No delivery will take place.</div>
+      <a routerLink="/orders" class="button button-outline full-width">All demo orders</a>
+      <a routerLink="/products" class="text-link">Keep exploring →</a>
+    </aside>
+  </div>
+} @else {
+  <div class="empty-state">
+    <h1>Order not found.</h1>
+    <p>Demo orders are available only in the browser where they were placed.</p>
+    <a class="button" routerLink="/orders">View demo orders</a>
+  </div>
+}

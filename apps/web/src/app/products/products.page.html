@@ -1,0 +1,88 @@
+<div class="breadcrumb">
+  <a routerLink="/">Home</a>
+  <span>/</span>
+  <span>The collection</span>
+</div>
+<div class="page-heading">
+  <p class="eyebrow">GOOD THINGS, CAREFULLY CHOSEN</p>
+  <h1>
+    The collection
+    <span class="green">.</span>
+  </h1>
+  <p>Everyday essentials for work, sound and the places in between.</p>
+</div>
+<div class="catalog-toolbar">
+  <label class="search-field">
+    <span>Search essentials</span>
+    <input
+      type="search"
+      placeholder="Try keyboard, audio, backpack…"
+      [ngModel]="search()"
+      (ngModelChange)="change('q', $event)"
+    />
+  </label>
+  <label>
+    <span>Sort by</span>
+    <select [ngModel]="sort()" (ngModelChange)="change('sort', $event)">
+      <option value="featured">Featured</option>
+      <option value="price-low">Price: low to high</option>
+      <option value="price-high">Price: high to low</option>
+      <option value="name">Name</option>
+    </select>
+  </label>
+</div>
+<div class="catalog-filters">
+  <div class="filter-chips" aria-label="Categories">
+    @for (item of categories(); track item) {
+      <button
+        class="chip"
+        [class.selected]="category() === item"
+        [attr.aria-pressed]="category() === item"
+        (click)="change('category', item)"
+      >
+        {{ item }}
+      </button>
+    }
+  </div>
+  <label class="checkbox-label">
+    <input type="checkbox" [ngModel]="inStock()" (ngModelChange)="change('stock', $event)" />
+    In stock only
+  </label>
+</div>
+<div class="section-heading small-heading">
+  <span>{{ filtered().length }} essentials · Prices in BRL</span>
+  <button class="text-button" (click)="clear()">Clear filters</button>
+</div>
+<div class="product-grid catalog-grid">
+  @for (product of visible(); track product.id) {
+    <app-product-card [product]="product" />
+  }
+</div>
+@if (!filtered().length) {
+  <div class="empty-state">
+    <span class="empty-icon">⌕</span>
+    <h2>No essentials found.</h2>
+    <p>Try another search or clear your filters.</p>
+    <button class="button button-outline" (click)="clear()">Clear filters</button>
+  </div>
+}
+
+@if (pages() > 1) {
+  <nav class="pagination" aria-label="Catalog pages">
+    <button
+      class="button button-outline"
+      [disabled]="currentPage() === 1"
+      (click)="change('page', currentPage() - 1)"
+    >
+      ← Previous
+    </button>
+    <span>Page {{ currentPage() }} of {{ pages() }}</span>
+    <button
+      class="button button-outline"
+      [disabled]="currentPage() === pages()"
+      (click)="change('page', currentPage() + 1)"
+    >
+      Next →
+    </button>
+  </nav>
+}

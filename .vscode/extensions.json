@@ -3,6 +3,7 @@
     "ms-dotnettools.csdevkit",
     "angular.ng-template",
     "nrwl.angular-console",
-    "ms-azuretools.vscode-docker"
+    "ms-azuretools.vscode-docker",
+    "esbenp.prettier-vscode"
   ]
 }

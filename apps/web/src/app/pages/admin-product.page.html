@@ -1,0 +1,76 @@
+<div class="breadcrumb">
+  <a routerLink="/admin/products">Demo products</a>
+  <span>/</span>
+  <span>{{ id ? 'Edit product' : 'New product' }}</span>
+</div>
+@if (missing) {
+  <div class="empty-state">
+    <h1>Product not found.</h1>
+    <a routerLink="/admin/products" class="button">Back to inventory</a>
+  </div>
+} @else {
+  <div class="page-heading">
+    <p class="eyebrow">MAKE ROOM FOR SOMETHING GOOD</p>
+    <h1>{{ id ? 'Edit essential.' : 'A new essential.' }}</h1>
+    <p>Local demonstration only. No changes are sent to a server.</p>
+  </div>
+  <form class="panel product-form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="form-grid">
+      <label class="span-two">
+        Product name
+        <input formControlName="name" maxlength="100" />
+      </label>
+      <label class="span-two">
+        Description
+        <textarea formControlName="description" rows="4" maxlength="1000"></textarea>
+      </label>
+      <label>
+        Price (BRL)
+        <input type="number" min="0.01" step="0.01" formControlName="price" />
+      </label>
+      <label>
+        Stock
+        <input type="number" min="0" step="1" formControlName="stock" />
+      </label>
+      <label>
+        Category
+        <select formControlName="category">
+          <option>Workspace</option>
+          <option>Audio</option>
+          <option>Everyday</option>
+        </select>
+      </label>
+      <label>
+        Illustration
+        <select formControlName="kind">
+          <option value="keyboard">Keyboard</option>
+          <option value="headphones">Headphones</option>
+          <option value="backpack">Backpack</option>
+          <option value="lamp">Lamp</option>
+          <option value="mouse">Mouse</option>
+          <option value="bottle">Bottle</option>
+        </select>
+      </label>
+      <label>
+        Background color
+        <input type="color" formControlName="color" />
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="featured" />
+        Featured on the homepage
+      </label>
+    </div>
+    @if (submitted() && form.invalid) {
+      <p role="alert" class="field-error">
+        Complete all fields. Use a positive price and a whole-number stock quantity.
+      </p>
+    }
+    @if (error()) {
+      <p role="alert" class="field-error">{{ error() }}</p>
+    }
+    <div class="button-row">
+      <button class="button" type="submit">Save demo product</button>
+      <a class="button button-outline" routerLink="/admin/products">Cancel</a>
+    </div>
+  </form>
+}

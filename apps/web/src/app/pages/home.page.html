@@ -1,0 +1,97 @@
+<section class="home-hero">
+  <div class="hero-copy">
+    <p class="eyebrow">THE EVERYDAY COLLECTION / 01</p>
+    <h1>
+      Good things for
+      <br />
+      your
+      <em>daily rhythm.</em>
+    </h1>
+    <p class="intro">
+      A few carefully chosen essentials for your workspace, your commute, and everything in between.
+    </p>
+    <div class="button-row">
+      <a class="button" routerLink="/products">
+        Explore the collection
+        <span>↗</span>
+      </a>
+      <a class="text-link" routerLink="/about">Meet DevStore</a>
+    </div>
+    <p class="hero-caption">LESS CLUTTER. MORE OF WHAT MATTERS.</p>
+  </div>
+  <div class="hero-visual">
+    @if (heroProduct(); as product) {
+      <app-product-art [product]="product" />
+    }
+    <div class="hero-sticker">
+      Made for
+      <br />
+      <strong>your everyday.</strong>
+    </div>
+  </div>
+</section>
+<div class="benefit-strip">
+  <span>✳ Thoughtful essentials</span>
+  <span>↗ Demo shipping over R$500</span>
+  <span>◇ Designed for daily use</span>
+</div>
+<section class="section-block">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">A FEW FAVORITES</p>
+      <h2>Your next everyday essential</h2>
+    </div>
+    <a routerLink="/products" class="text-link">Shop all →</a>
+  </div>
+  <div class="product-grid">
+    @for (product of featured(); track product.id) {
+      <app-product-card [product]="product" />
+    } @empty {
+      <p>No featured essentials yet. Browse the full collection.</p>
+    }
+  </div>
+</section>
+<section class="section-block">
+  <div class="section-heading">
+    <h2>Find your rhythm</h2>
+    <span>Small things. A better day.</span>
+  </div>
+  <div class="category-grid">
+    <a
+      routerLink="/products"
+      [queryParams]="{ category: 'Workspace' }"
+      class="category-tile workspace"
+    >
+      <span>01 / WORKSPACE</span>
+      <h3>A little more focus.</h3>
+      <p>Clear your desk. Make room for ideas.</p>
+      <b>Explore workspace →</b>
+    </a>
+    <a routerLink="/products" [queryParams]="{ category: 'Audio' }" class="category-tile audio">
+      <span>02 / AUDIO</span>
+      <h3>Find your soundtrack.</h3>
+      <p>Good sound, wherever the day goes.</p>
+      <b>Explore audio →</b>
+    </a>
+    <a
+      routerLink="/products"
+      [queryParams]="{ category: 'Everyday' }"
+      class="category-tile everyday"
+    >
+      <span>03 / EVERYDAY</span>
+      <h3>Ready for the day.</h3>
+      <p>Take the essentials. Leave the excess.</p>
+      <b>Explore everyday →</b>
+    </a>
+  </div>
+</section>
+<section class="story-banner">
+  <p class="eyebrow">A SMALL COLLECTION. A CONSIDERED CHOICE.</p>
+  <h2>
+    We believe the everyday
+    <br />
+    deserves a little more care.
+  </h2>
+  <p>DevStore is a learning project built around a simple idea: make useful things easy to find.</p>
+  <a class="button button-outline" routerLink="/about">Read our story</a>
+</section>

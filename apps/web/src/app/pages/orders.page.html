@@ -1,0 +1,33 @@
+<div class="page-heading">
+  <p class="eyebrow">YOUR DEMO JOURNEY</p>
+  <h1>
+    Your orders
+    <span class="green">.</span>
+  </h1>
+  <p>Orders saved in this browser, including guest orders. No real purchases.</p>
+</div>
+@if (store.orders().length) {
+  <div class="order-list">
+    @for (order of store.orders(); track order.id) {
+      <a class="order-card" [routerLink]="['/orders', order.id]">
+        <div>
+          <span class="eyebrow">{{ order.id }}</span>
+          <h3>
+            {{ order.items.length }} {{ order.items.length === 1 ? 'essential' : 'essentials' }}
+          </h3>
+          <p>{{ order.createdAt | date: 'mediumDate' }}</p>
+        </div>
+        <span class="status-pill">{{ order.status }}</span>
+        <strong>{{ order.total | currency: 'BRL' }}</strong>
+        <span>View →</span>
+      </a>
+    }
+  </div>
+} @else {
+  <div class="empty-state">
+    <span class="empty-icon">◇</span>
+    <h2>Your first everyday is waiting.</h2>
+    <p>Place a demo order to see it here.</p>
+    <a class="button" routerLink="/products">Explore the collection</a>
+  </div>
+}

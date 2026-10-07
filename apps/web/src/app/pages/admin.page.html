@@ -1,0 +1,151 @@
+<div class="page-heading">
+  <p class="eyebrow">BEHIND THE COLLECTION</p>
+  <h1>
+    Demo management
+    <span class="green">.</span>
+  </h1>
+  <p>Changes affect only this browser. This is not a secured admin portal.</p>
+</div>
+<nav class="admin-tabs" aria-label="Demo management">
+  <a routerLink="/admin" [class.active]="tab() === 'admin'">Overview</a>
+  <a routerLink="/admin/products" [class.active]="tab() === 'products'">Products</a>
+  <a routerLink="/admin/orders" [class.active]="tab() === 'orders'">Orders</a>
+</nav>
+<div class="info-note">
+  No server mutations or access control exist yet. Your future API must require an authorized
+  administrator for management operations.
+</div>
+@if (tab() === 'admin') {
+  <div class="stats-grid">
+    <div class="panel">
+      <span class="eyebrow">DEMO PRODUCTS</span>
+      <h2>{{ store.products().length }}</h2>
+      <a routerLink="/admin/products">Manage collection →</a>
+    </div>
+    <div class="panel">
+      <span class="eyebrow">DEMO ORDERS</span>
+      <h2>{{ store.orders().length }}</h2>
+      <a routerLink="/admin/orders">View demo orders →</a>
+    </div>
+    <div class="panel">
+      <span class="eyebrow">SIMULATED ORDER VALUE</span>
+      <h2>{{ revenue() | currency: 'BRL' }}</h2>
+      <p>No real revenue.</p>
+    </div>
+  </div>
+  <section class="panel">
+    <h2>Stock to keep an eye on</h2>
+    @for (product of lowStock(); track product.id) {
+      <div class="receipt-row">
+        <a [routerLink]="['/admin/products', product.id]">{{ product.name }}</a>
+        <span>{{ product.stock }} in stock</span>
+      </div>
+    } @empty {
+      <p>Every essential has at least five units in demo stock.</p>
+    }
+  </section>
+}
+@if (tab() === 'products') {
+  <div class="section-heading">
+    <h2>Your essentials</h2>
+    <a class="button" routerLink="/admin/products/new">+ New product</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="visually-hidden">Demo product inventory</caption>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of store.products(); track product.id) {
+          <tr>
+            <td>
+              <strong>{{ product.name }}</strong>
+              <small>#{{ product.id }}</small>
+            </td>
+            <td>{{ product.category }}</td>
+            <td>{{ product.price | currency: 'BRL' }}</td>
+            <td>{{ product.stock }}</td>
+            <td>
+              <a [routerLink]="['/admin/products', product.id]">Edit</a>
+              <button
+                class="text-button danger"
+                (click)="pendingDelete.set(product.id)"
+                [attr.aria-label]="'Delete ' + product.name"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">No demo products. Create your first essential.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+@if (tab() === 'orders') {
+  <h2>Demo orders</h2>
+  @if (store.orders().length) {
+    <div class="table-wrap">
+      <table>
+        <caption class="visually-hidden">Demo orders in this browser</caption>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of store.orders(); track order.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/orders', order.id]">{{ order.id }}</a>
+              </td>
+              <td>{{ order.createdAt | date: 'mediumDate' }}</td>
+              <td>{{ order.total | currency: 'BRL' }}</td>
+              <td>
+                <select
+                  [ngModel]="order.status"
+                  (ngModelChange)="status(order.id, $event)"
+                  [attr.aria-label]="'Status for ' + order.id"
+                >
+                  <option>Confirmed</option>
+                  <option>Preparing</option>
+                  <option>Shipped</option>
+                </select>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h2>No demo orders yet.</h2>
+      <p>Try checkout in the storefront to create one.</p>
+      <a routerLink="/products" class="button">Visit the collection</a>
+    </div>
+  }
+}
+@if (pendingDelete() !== null) {
+  <div class="delete-confirmation" role="alert">
+    <h3>Remove {{ store.product(pendingDelete()!)?.name }}?</h3>
+    <p>
+      This removes it from this browser's catalog, cart and favorites. Existing demo orders retain
+      their item history.
+    </p>
+    <div class="button-row">
+      <button class="button danger-button" (click)="remove()">Remove demo product</button>
+      <button class="button button-outline" (click)="pendingDelete.set(null)">Cancel</button>
+    </div>
+  </div>
+}
