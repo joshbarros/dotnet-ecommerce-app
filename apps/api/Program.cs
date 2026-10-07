@@ -1,5 +1,6 @@
 using Ecommerce.Api.Data;
 using Ecommerce.Api.Models;
+using Ecommerce.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
+builder.Services.AddScoped<OrderService>();
 
 var connectionString = builder.Configuration.GetConnectionString("Store")
     ?? throw new InvalidOperationException("Connection string 'Store' is not configured.");

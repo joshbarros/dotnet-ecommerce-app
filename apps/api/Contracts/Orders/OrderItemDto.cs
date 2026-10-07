@@ -1,6 +1,8 @@
 namespace Ecommerce.Api.Contracts.Orders;
 
-public record OrderItemRequest(
+public record OrderItemDto(
     int ProductId,
+    string Name,
+    decimal Price,
     int Quantity
 );
