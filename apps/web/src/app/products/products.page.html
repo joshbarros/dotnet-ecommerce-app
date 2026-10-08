@@ -49,40 +49,55 @@
     In stock only
   </label>
 </div>
-<div class="section-heading small-heading">
-  <span>{{ filtered().length }} essentials · Prices in BRL</span>
-  <button class="text-button" (click)="clear()">Clear filters</button>
-</div>
-<div class="product-grid catalog-grid">
-  @for (product of visible(); track product.id) {
-    <app-product-card [product]="product" />
-  }
-</div>
-@if (!filtered().length) {
+@if (loading()) {
   <div class="empty-state">
     <span class="empty-icon">⌕</span>
-    <h2>No essentials found.</h2>
-    <p>Try another search or clear your filters.</p>
-    <button class="button button-outline" (click)="clear()">Clear filters</button>
+    <h2>Loading the collection…</h2>
+    <p>Fetching essentials from the catalog.</p>
   </div>
-}
+} @else if (loadError()) {
+  <div class="empty-state">
+    <span class="empty-icon">!</span>
+    <h2>Could not load the collection.</h2>
+    <p>The shop API did not respond. Check that the backend is running.</p>
+    <button class="button button-outline" (click)="store.reloadCatalog()">Try again</button>
+  </div>
+} @else {
+  <div class="section-heading small-heading">
+    <span>{{ filtered().length }} essentials · Prices in BRL</span>
+    <button class="text-button" (click)="clear()">Clear filters</button>
+  </div>
+  <div class="product-grid catalog-grid">
+    @for (product of visible(); track product.id) {
+      <app-product-card [product]="product" />
+    }
+  </div>
+  @if (!filtered().length) {
+    <div class="empty-state">
+      <span class="empty-icon">⌕</span>
+      <h2>No essentials found.</h2>
+      <p>Try another search or clear your filters.</p>
+      <button class="button button-outline" (click)="clear()">Clear filters</button>
+    </div>
+  }
 
-@if (pages() > 1) {
-  <nav class="pagination" aria-label="Catalog pages">
-    <button
-      class="button button-outline"
-      [disabled]="currentPage() === 1"
-      (click)="change('page', currentPage() - 1)"
-    >
-      ← Previous
-    </button>
-    <span>Page {{ currentPage() }} of {{ pages() }}</span>
-    <button
-      class="button button-outline"
-      [disabled]="currentPage() === pages()"
-      (click)="change('page', currentPage() + 1)"
-    >
-      Next →
-    </button>
-  </nav>
+  @if (pages() > 1) {
+    <nav class="pagination" aria-label="Catalog pages">
+      <button
+        class="button button-outline"
+        [disabled]="currentPage() === 1"
+        (click)="change('page', currentPage() - 1)"
+      >
+        ← Previous
+      </button>
+      <span>Page {{ currentPage() }} of {{ pages() }}</span>
+      <button
+        class="button button-outline"
+        [disabled]="currentPage() === pages()"
+        (click)="change('page', currentPage() + 1)"
+      >
+        Next →
+      </button>
+    </nav>
+  }
 }

@@ -43,13 +43,22 @@
     </div>
     <a routerLink="/products" class="text-link">Shop all →</a>
   </div>
-  <div class="product-grid">
-    @for (product of featured(); track product.id) {
-      <app-product-card [product]="product" />
-    } @empty {
-      <p>No featured essentials yet. Browse the full collection.</p>
-    }
-  </div>
+  @if (ready()) {
+    <div class="product-grid">
+      @for (product of featured(); track product.id) {
+        <app-product-card [product]="product" />
+      } @empty {
+        <p>No featured essentials yet. Browse the full collection.</p>
+      }
+    </div>
+  } @else if (loadError()) {
+    <p>
+      Could not load the collection.
+      <button class="text-button" (click)="store.reloadCatalog()">Try again</button>
+    </p>
+  } @else {
+    <p>Loading the collection…</p>
+  }
 </section>
 <section class="section-block">
   <div class="section-heading">

@@ -1,4 +1,6 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, Optional, signal } from '@angular/core';
+import { ApiService } from './api.service';
+import { useApi } from './api-config';
 import { INITIAL_PRODUCTS } from './catalog.data';
 import { CartLine, DeliveryAddress, Order, Product, Profile, StoreResult } from './models';
 
@@ -99,8 +101,16 @@ const money = (value: number) => Math.round((value + Number.EPSILON) * 100) / 10
 
 @Injectable({ providedIn: 'root' })
 export class StoreService {
+  constructor(@Optional() private readonly api?: ApiService) {
+    if (this.usingApi && this.api) this.reloadCatalog();
+  }
+
+  readonly usingApi = useApi;
+  readonly catalogState = signal<'loading' | 'ready' | 'error'>(useApi ? 'loading' : 'ready');
   private readonly saved = loadState();
-  readonly products = signal<Product[]>(this.saved.products ?? structuredClone(INITIAL_PRODUCTS));
+  readonly products = signal<Product[]>(
+    this.saved.products ?? (useApi ? [] : structuredClone(INITIAL_PRODUCTS)),
+  );
   readonly cart = signal<CartLine[]>(this.normalizeCart(this.saved.cart ?? []));
   readonly wishlist = signal<number[]>(this.saved.wishlist ?? []);
   readonly orders = signal<Order[]>(this.saved.orders ?? []);
@@ -122,6 +132,35 @@ export class StoreService {
   readonly favorites = computed(() =>
     this.products().filter((p) => this.wishlist().includes(p.id)),
   );
+
+  reloadCatalog(): void {
+    this.catalogState.set('loading');
+    this.api!.products({ pageSize: 100 }).subscribe({
+      next: (page) => {
+        this.products.set(page.items);
+        this.cart.set(this.normalizeCart(this.cart()));
+        this.catalogState.set('ready');
+      },
+      error: () => {
+        this.catalogState.set('error');
+        this.notice.set('The shop could not reach the API.');
+      },
+    });
+  }
+
+  ensureProduct(id: number): void {
+    if (!this.usingApi || this.product(id)) return;
+    this.catalogState.set('loading');
+    this.api!.product(id).subscribe({
+      next: (product) => {
+        this.products.update((list) =>
+          list.some((p) => p.id === product.id) ? list : [...list, product],
+        );
+        this.catalogState.set('ready');
+      },
+      error: () => this.catalogState.set('error'),
+    });
+  }
 
   private normalizeCart(lines: CartLine[]): CartLine[] {
     const merged = new Map<number, number>();

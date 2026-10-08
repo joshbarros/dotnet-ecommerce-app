@@ -1,4 +1,15 @@
-@if (product(); as p) {
+@if (store.usingApi && store.catalogState() === 'loading') {
+  <div class="empty-state">
+    <h1>Loading…</h1>
+    <p>Fetching this essential from the catalog.</p>
+  </div>
+} @else if (store.usingApi && store.catalogState() === 'error') {
+  <div class="empty-state">
+    <h1>Could not load this product.</h1>
+    <p>The shop API did not respond.</p>
+    <button class="button" (click)="store.ensureProduct(id())">Try again</button>
+  </div>
+} @else if (product(); as p) {
   <div class="breadcrumb">
     <a routerLink="/">Home</a>
     <span>/</span>

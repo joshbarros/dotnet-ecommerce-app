@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -16,11 +16,15 @@ export class ProductDetailPage {
   private readonly params = toSignal(this.route.paramMap, {
     initialValue: this.route.snapshot.paramMap,
   });
-  readonly product = computed(() => this.store.product(Number(this.params().get('id'))));
+  readonly id = computed(() => Number(this.params().get('id')));
+  readonly product = computed(() => this.store.product(this.id()));
   readonly related = computed(() =>
     this.store
       .products()
       .filter((p) => p.category === this.product()?.category && p.id !== this.product()?.id)
       .slice(0, 3),
   );
+  constructor() {
+    effect(() => this.store.ensureProduct(this.id()));
+  }
 }

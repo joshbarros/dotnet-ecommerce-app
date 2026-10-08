@@ -12,7 +12,7 @@ import { BehaviorSubject } from 'rxjs';
 // Execute the actual Angular store after transpiling, without a browser or DOM.
 await mkdir(resolve('.local'), { recursive: true });
 const output = await mkdtemp(resolve('.local/frontend-tests-'));
-for (const name of ['catalog.data', 'store.service']) {
+for (const name of ['catalog.data', 'api-config', 'store.service']) {
   const source = await readFile(`apps/web/src/app/core/${name}.ts`, 'utf8');
   const { outputText } = ts.transpileModule(source, {
     compilerOptions: {
@@ -23,7 +23,9 @@ for (const name of ['catalog.data', 'store.service']) {
   });
   await writeFile(
     join(output, `${name}.mjs`),
-    outputText.replace("'./catalog.data'", "'./catalog.data.mjs'"),
+    outputText
+      .replace("'./catalog.data'", "'./catalog.data.mjs'")
+      .replace("'./api-config'", "'./api-config.mjs'"),
   );
 }
 const { StoreService } = await import(join(output, 'store.service.mjs'));

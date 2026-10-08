@@ -10,6 +10,9 @@ import { ProductArtComponent } from '../shared/product-art.component';
 })
 export class HomePage {
   readonly store = inject(StoreService);
+  readonly ready = computed(() => !this.store.usingApi || this.store.catalogState() === 'ready');
+  readonly loadError = computed(() => this.store.usingApi && this.store.catalogState() === 'error');
+  readonly loading = computed(() => this.store.usingApi && this.store.catalogState() === 'loading');
   readonly featured = computed(() =>
     this.store
       .products()

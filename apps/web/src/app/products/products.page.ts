@@ -24,6 +24,9 @@ export class ProductsPage {
     const page = Number(this.params().get('page'));
     return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
   });
+  readonly ready = computed(() => !this.store.usingApi || this.store.catalogState() === 'ready');
+  readonly loadError = computed(() => this.store.usingApi && this.store.catalogState() === 'error');
+  readonly loading = computed(() => this.store.usingApi && this.store.catalogState() === 'loading');
   readonly categories = computed(() => [
     'All',
     ...new Set(this.store.products().map((p) => p.category)),
