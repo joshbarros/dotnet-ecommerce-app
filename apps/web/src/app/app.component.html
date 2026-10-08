@@ -43,7 +43,12 @@
   </div>
 </header>
 <div class="demo-ribbon">
-  INTERACTIVE FRONTEND DEMO · No real accounts, payments or deliveries. Use fictional information.
+  @if (store.usingApi) {
+    DEMO FRONTEND · Catalog, accounts, orders and management read and write the real shop API. Use
+    the seeded test account. No payments or deliveries.
+  } @else {
+    INTERACTIVE FRONTEND DEMO · No real accounts, payments or deliveries. Use fictional information.
+  }
 </div>
 @if (store.storageWarning()) {
   <div role="alert" class="storage-warning">{{ store.storageWarning() }}</div>
@@ -98,6 +103,8 @@
   <div class="footer-bottom">
     <span>© {{ year }} DevStore</span>
     <span>Prices in BRL · Portfolio learning project</span>
-    <button class="text-button" (click)="store.resetDemo()">Reset demo data</button>
+    @if (!store.usingApi) {
+      <button class="text-button" (click)="store.resetDemo()">Reset demo data</button>
+    }
   </div>
 </footer>

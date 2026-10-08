@@ -19,8 +19,12 @@
     <p>
       {{
         confirmation()
-          ? 'Thanks for exploring DevStore. No charge was made and nothing will be shipped.'
-          : 'This order exists only in your browser.'
+          ? store.usingApi
+            ? 'Your order is confirmed and saved by the shop.'
+            : 'Thanks for exploring DevStore. No charge was made and nothing will be shipped.'
+          : store.usingApi
+            ? 'This order is saved on the server.'
+            : 'This order exists only in your browser.'
       }}
     </p>
     <span class="status-pill">{{ order.status }} · {{ order.createdAt | date: 'medium' }}</span>

@@ -1,8 +1,10 @@
 # DevStore
 
-A complete interactive ecommerce frontend and an intentionally empty C# backend workbook, in an Nx monorepo. English UI, BRL prices, Angular 21 and .NET 10.
+A complete interactive ecommerce app in an Nx monorepo: an Angular 21 frontend and a real ASP.NET Core 10 API backed by PostgreSQL. English UI, BRL prices. The frontend runs in a local demo mode by default; a config flag switches it to the live API.
 
 ## What works today
+
+Frontend (demo mode):
 
 - Home, searchable/filterable/sortable/paginated catalog, product detail and wishlist.
 - Cart with quantity controls, stock limits, removal and totals.
@@ -11,9 +13,17 @@ A complete interactive ecommerce frontend and an intentionally empty C# backend 
 - Demo management dashboard, product create/edit/delete and order status updates.
 - About, FAQ, shipping/returns, contact-form demonstration, privacy, demo terms and 404.
 - Responsive layouts, CSS product illustrations, keyboard focus states and route titles.
-- Local persistence for cart, favorites, profile, product changes and demo orders.
 
-This is **not a real commerce backend**. No payment is collected, no email is sent, nothing is delivered and no real authentication occurs. Use fictional information. Demo management is openly accessible and modifies only browser state.
+Backend (API, `apps/web/src/app/core/api-config.ts` → `useApi`):
+
+- Paged, filtered, sorted catalog with case-insensitive search and `decimal` prices.
+- ASP.NET Core Identity with HTTP-only cookie sessions and antiforgery validation.
+- Orders with server-side pricing, atomic stock decrement, idempotency keys and ownership checks.
+- Admin product management gated by the Admin role.
+- PostgreSQL persistence with EF Core migrations; an admin and nine products are seeded in development.
+- 19 integration tests covering pricing, stock races, idempotency, catalog and auth.
+
+Local demo mode never touches the API. Switching to API mode makes catalog, orders, accounts and management read and write the backend. Demo management is openly accessible and modifies only browser state.
 
 ## Run the frontend
 
@@ -69,27 +79,33 @@ Copy `.env.example` to `.env` to change `WEB_PORT`. Stop the current frontend wi
 
 Routes load page components lazily. Query filters are preserved in the catalog URL. Router navigation restores scroll positions. The demo storage key is `devstore.demo.v1`, scoped to the current origin: ports 4200 and 8080 have separate saved state. “Reset demo data” in the footer resets the catalog, cart, favorites, profile and orders.
 
-## Backend: write it yourself
+## Backend
 
-All hand-written `.cs` files in `apps/api` and `tests/api` are empty by request. The project temporarily compiles as a library. API execution, F5 debugging and API smoke tests become useful after you implement the entry point and endpoints.
+The API lives in `apps/api`, built on ASP.NET Core 10 + EF Core with Npgsql and ASP.NET Core Identity. Run the dev API (already bound to port 5207 by `project.json`):
 
-Start with [the backend workbook](docs/backend-roadmap.md). It maps each empty file to its responsibility and provides incremental acceptance criteria. [API contracts](docs/api-contracts.md) describe the intended frontend/backend interface.
+```bash
+docker compose up -d db
+source scripts/dev-env.sh
+npm run dev:api
+```
 
-The former catalog API is preserved locally in `.local/backend-before-learning` and in the original Git history. No C# business logic, database packages, migrations or authentication implementation has been added for you.
+The database is created and migrated automatically on startup; the development seeder adds an `Admin` role, an admin user (`admin@devstore.local` / `DevStoreAdmin!42`) and nine products. API contracts are documented in [docs/api-contracts.md](docs/api-contracts.md). The original implementation workbook is preserved at [docs/backend-roadmap.md](docs/backend-roadmap.md) for reference.
 
-The first exercise: implement `Program.cs`, remove `<OutputType>Library</OutputType>` from the API project, return a health response, and run `npm run dev:api`. Then write the Product model and list/detail endpoints. Prices should use `decimal`.
+To run the frontend against the real API instead of the local demo, set `useApi = true` in `apps/web/src/app/core/api-config.ts`. Sign in as the seeded admin to use the management screens.
 
 ## Source map
 
 - `apps/web/src/app/app.routes.ts`: all frontend routes.
 - `apps/web/src/app/core/models.ts`: frontend data contracts.
-- `apps/web/src/app/core/catalog.data.ts`: fictional seed products.
-- `apps/web/src/app/core/store.service.ts`: local demo rules/state and persistence.
+- `apps/web/src/app/core/catalog.data.ts`: fictional seed products (demo mode).
+- `apps/web/src/app/core/store.service.ts`: local demo state plus API-mode catalog, orders and auth.
+- `apps/web/src/app/core/api.service.ts`: typed HTTP client for the real backend (with CSRF handling).
+- `apps/web/src/app/core/api-config.ts`: the `useApi` demo/API mode switch.
 - `apps/web/src/app/pages`: page components and templates.
 - `apps/web/src/app/shared`: reusable product cards and illustrations.
-- `apps/web/src/app/products/products.service.ts`: optional HTTP catalog reads for future integration; current demo pages do not use them.
-- `apps/api`: empty controllers, contracts, models, data, services and validation files.
-- `tests/api`: empty future C# test files.
+- `apps/api`: controllers, contracts, models, data (EF migrations + seeder), services and middleware.
+- `tests/api`: xUnit integration tests against PostgreSQL (catalog, auth, orders, stock races).
+- `tests/*.test.mjs`: frontend rule/smoke tests and API contract smoke tests.
 
 ## Formatting and VS Code
 
@@ -107,8 +123,8 @@ Once your API has an entry point, open `Ecommerce.sln` in C# Dev Kit. Start Angu
 
 ## Verification and limitations
 
-Frontend tests execute the actual Angular store and login/registration form logic using Node, TypeScript transpilation and the Angular runtime. HTTP smoke tests request the SPA document at each route; they do not execute page components or prove visual behavior. The API smoke tests cover the intended paged catalog contract and are available as `npm run test:api:smoke`, for when you implement those endpoints.
+Frontend tests execute the actual Angular store and login/registration form logic using Node, TypeScript transpilation and the Angular runtime. HTTP smoke tests request the SPA document at each route; they do not execute page components or prove visual behavior. `npm run test:api:smoke` covers the public API contract. `dotnet test tests/api` runs 19 integration tests against a dedicated `ecommerce_test` database (catalog contract, auth/session rules, order pricing/idempotency and competing-stock races).
 
-See [validation](docs/validation.md) and [manual frontend checklist](docs/frontend-checklist.md). No connected browser was available for visual verification during development. Desktop/mobile review and end-to-end interaction testing remain outstanding. No screenshot is claimed. The updated GitHub Actions workflow has not run remotely. Nothing was published.
+See [validation](docs/validation.md) and [manual frontend checklist](docs/frontend-checklist.md). No connected browser was available for visual verification during development; desktop/mobile review and end-to-end browser interaction remain outstanding. No screenshot is claimed.
 
-The next real-commerce steps are server-side persistence, authentication/authorization, validated pricing and stock, transactional order creation, idempotency and integration tests. They are described in the backend workbook so you can implement and compile them yourself.
+The backend now supports server-side persistence, authentication/authorization, server-validated pricing and stock, transactional order creation and idempotency. Still at demo level: there is no real payment processing, emailing or fulfillment, order status transitions on the server are not yet exposed, and the frontend defaults to local demo mode rather than the API.
