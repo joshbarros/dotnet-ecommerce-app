@@ -20,10 +20,13 @@ export class AdminPage {
   readonly lowStock = computed(() => this.store.products().filter((p) => p.stock < 5));
   remove() {
     const id = this.pendingDelete();
-    if (id !== null) this.store.deleteProduct(id);
+    if (id === null) return;
+    if (this.store.usingApi) this.store.deleteProductApi(id).subscribe();
+    else this.store.deleteProduct(id);
     this.pendingDelete.set(null);
   }
   status(id: string, value: string) {
+    if (this.store.usingApi) return;
     if (['Confirmed', 'Preparing', 'Shipped'].includes(value))
       this.store.updateOrder(id, value as Order['status']);
   }

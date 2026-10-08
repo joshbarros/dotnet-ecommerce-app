@@ -1,12 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { computed, Injectable, Optional, signal } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
-import { ApiService, toOrder } from './api.service';
+import { ApiService, CustomerDto, toOrder } from './api.service';
 import { useApi } from './api-config';
 import { INITIAL_PRODUCTS } from './catalog.data';
 import { CartLine, DeliveryAddress, Order, Product, Profile, StoreResult } from './models';
 
 export type OrderResult = { ok: true; order: Order } | { ok: false; message: string };
+
+export type AuthResult = { ok: true } | { ok: false; message: string };
 
 const STORAGE_KEY = 'devstore.demo.v1';
 interface SavedState {
@@ -15,6 +17,7 @@ interface SavedState {
   wishlist: number[];
   orders: Order[];
   profile: Profile | null;
+  roles: string[];
 }
 const kinds = ['keyboard', 'headphones', 'backpack', 'lamp', 'mouse', 'bottle'];
 function isProduct(value: unknown): value is Product {
@@ -96,6 +99,9 @@ function loadState(): Partial<SavedState> {
         typeof state.profile.email === 'string'
           ? state.profile
           : null,
+      roles: Array.isArray(state.roles)
+        ? (state.roles.filter((r: string) => typeof r === 'string') as string[])
+        : [],
     };
   } catch {
     return {};
@@ -105,10 +111,14 @@ const money = (value: number) => Math.round((value + Number.EPSILON) * 100) / 10
 
 @Injectable({ providedIn: 'root' })
 export class StoreService {
+  readonly authState = signal<'idle' | 'loading' | 'ready'>('idle');
+  readonly isAdmin = computed(() => this.roles().includes('Admin'));
+
   constructor(@Optional() private readonly api?: ApiService) {
     if (this.usingApi && this.api) {
       this.reloadCatalog();
       this.reloadOrders();
+      this.refreshSession();
     }
   }
 
@@ -122,6 +132,7 @@ export class StoreService {
   readonly wishlist = signal<number[]>(this.saved.wishlist ?? []);
   readonly orders = signal<Order[]>(this.saved.orders ?? []);
   readonly profile = signal<Profile | null>(this.saved.profile ?? null);
+  readonly roles = signal<string[]>(this.saved.roles ?? []);
   readonly notice = signal('');
   readonly storageWarning = signal('');
   readonly cartItems = computed(() =>
@@ -245,6 +256,118 @@ export class StoreService {
     );
   }
 
+  refreshSession(): void {
+    if (!this.usingApi || !this.api) return;
+    this.authState.set('loading');
+    this.api.account().subscribe({
+      next: (dto) => this.applyCustomer(dto),
+      error: () => {
+        this.profile.set(null);
+        this.roles.set([]);
+        this.authState.set('idle');
+      },
+    });
+  }
+
+  signInApi(email: string, password: string): Observable<AuthResult> {
+    return this.api!.login({ email, password }).pipe(
+      map((dto) => {
+        this.applyCustomer(dto.body!);
+        this.notice.set(`Signed in as ${dto.body!.name}.`);
+        return { ok: true } as const;
+      }),
+      catchError(() => of<AuthResult>({ ok: false, message: 'Invalid email or password.' })),
+    );
+  }
+
+  registerApi(name: string, email: string, password: string): Observable<AuthResult> {
+    return this.api!.register({ name, email, password }).pipe(
+      map((dto) => {
+        this.applyCustomer(dto.body!);
+        this.notice.set(`Welcome, ${dto.body!.name}.`);
+        return { ok: true } as const;
+      }),
+      catchError((error: HttpErrorResponse) =>
+        of<AuthResult>({ ok: false, message: error.error?.detail ?? 'Registration failed.' }),
+      ),
+    );
+  }
+
+  signOutApi(): Observable<void> {
+    return this.api!.logout().pipe(
+      map(() => {
+        this.profile.set(null);
+        this.roles.set([]);
+        this.authState.set('idle');
+        this.orderState.set('idle');
+        this.orders.set([]);
+        this.persist();
+        this.notice.set('You left your account.');
+      }),
+    );
+  }
+
+  updateProfileApi(name: string): Observable<AuthResult> {
+    return this.api!.updateAccount(name).pipe(
+      map((dto) => {
+        this.applyCustomer(dto);
+        this.notice.set('Profile updated.');
+        return { ok: true } as const;
+      }),
+      catchError((error: HttpErrorResponse) =>
+        of<AuthResult>({
+          ok: false,
+          message: error.error?.detail ?? 'Could not update your profile.',
+        }),
+      ),
+    );
+  }
+
+  private applyCustomer(dto: CustomerDto): void {
+    this.profile.set({ name: dto.name, email: dto.email });
+    this.roles.set(dto.roles);
+    this.authState.set('ready');
+    this.persist();
+  }
+
+  saveProductApi(input: Omit<Product, 'id'>, id?: number): Observable<AuthResult> {
+    const request = { ...input, price: Number(input.price), stock: Number(input.stock) };
+    const call =
+      id === undefined ? this.api!.createProduct(request) : this.api!.updateProduct(id, request);
+    return call.pipe(
+      map(() => {
+        this.reloadCatalog();
+        this.notice.set(id === undefined ? 'Product created.' : 'Product updated.');
+        return { ok: true } as const;
+      }),
+      catchError((error: HttpErrorResponse) =>
+        of<AuthResult>({
+          ok: false,
+          message: error.error?.detail ?? 'The API rejected the product.',
+        }),
+      ),
+    );
+  }
+
+  deleteProductApi(id: number): Observable<AuthResult> {
+    return this.api!.deleteProduct(id).pipe(
+      map(() => {
+        this.products.update((list) => list.filter((p) => p.id !== id));
+        this.cart.set(this.normalizeCart(this.cart()));
+        this.wishlist.update((ids) => ids.filter((i) => i !== id));
+        this.persist();
+        this.notice.set('Product removed.');
+        return { ok: true } as const;
+      }),
+      catchError((error: HttpErrorResponse) =>
+        of<AuthResult>({
+          ok: false,
+          message: error.error?.detail ?? 'Could not remove the product.',
+        }),
+      ),
+    );
+  }
+
   private normalizeCart(lines: CartLine[]): CartLine[] {
     const merged = new Map<number, number>();
     for (const line of lines)
@@ -266,6 +389,7 @@ export class StoreService {
           wishlist: this.wishlist(),
           orders: this.orders(),
           profile: this.profile(),
+          roles: this.roles(),
         }),
       );
       this.storageWarning.set('');

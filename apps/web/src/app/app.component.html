@@ -84,7 +84,15 @@
       <h3>The project</h3>
       <a routerLink="/privacy">Privacy</a>
       <a routerLink="/terms">Demo terms</a>
-      <a routerLink="/admin">Demo management</a>
+      @if (store.usingApi) {
+        @if (store.isAdmin()) {
+          <a routerLink="/admin">Management</a>
+        } @else {
+          <a routerLink="/account">Your account</a>
+        }
+      } @else {
+        <a routerLink="/admin">Demo management</a>
+      }
     </div>
   </div>
   <div class="footer-bottom">

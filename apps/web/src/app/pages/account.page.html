@@ -4,43 +4,72 @@
     Your account
     <span class="green">.</span>
   </h1>
-  <p>A local demo profile. No authentication is performed.</p>
+  @if (store.usingApi) {
+    <p>Your real profile, managed through the shop API.</p>
+  } @else {
+    <p>A local demo profile. No authentication is performed.</p>
+  }
 </div>
-@if (store.profile(); as profile) {
+@if (store.usingApi && store.authState() === 'loading') {
+  <div class="empty-state">
+    <h2>Checking your session…</h2>
+    <p>Loading your account from the API.</p>
+  </div>
+} @else if (store.profile(); as profile) {
   <div class="account-layout">
     <nav class="account-nav" aria-label="Account">
       <a class="active" routerLink="/account">Profile</a>
-      <a routerLink="/orders">Demo orders →</a>
+      <a routerLink="/orders">My orders →</a>
       <a routerLink="/wishlist">Saved essentials →</a>
-      <button class="text-button" (click)="store.signOut()">Leave demo account</button>
+      @if (store.usingApi) {
+        <button class="text-button" (click)="store.signOutApi().subscribe()">Sign out</button>
+      } @else {
+        <button class="text-button" (click)="store.signOut()">Leave demo account</button>
+      }
     </nav>
     <form class="panel" [formGroup]="form" (ngSubmit)="save()" novalidate>
       <h2>Hello, {{ profile.name }}.</h2>
-      <p class="muted">Keep these details fictional. They are stored only in this browser.</p>
+      <p class="muted">
+        {{
+          store.usingApi
+            ? 'Your name is stored on the server.'
+            : 'Keep these details fictional. They are stored only in this browser.'
+        }}
+      </p>
       <label>
         Display name
         <input formControlName="name" />
       </label>
       <label>
-        Demo email
+        Email
         <input type="email" formControlName="email" />
       </label>
+      @if (error()) {
+        <p role="alert" class="field-error">{{ error() }}</p>
+      }
       @if (submitted() && form.invalid) {
         <p role="alert" class="field-error">Enter a name and valid email.</p>
       }
-      <button class="button" type="submit">Save demo profile</button>
+      <button class="button" type="submit">
+        {{ store.usingApi ? 'Save profile' : 'Save demo profile' }}
+      </button>
     </form>
   </div>
 } @else {
   <div class="empty-state">
     <h2>Make yourself at home.</h2>
     <p>
-      Enter a demo profile to explore the account screen. Guest orders remain available in this
-      browser.
+      {{
+        store.usingApi
+          ? 'Sign in to manage your profile and see your orders.'
+          : 'Enter a demo profile to explore the account screen.'
+      }}
     </p>
     <div class="button-row">
-      <a class="button" routerLink="/login">Enter demo account</a>
-      <a class="button button-outline" routerLink="/orders">View guest orders</a>
+      <a class="button" routerLink="/login">
+        {{ store.usingApi ? 'Sign in' : 'Enter demo account' }}
+      </a>
+      <a class="button button-outline" routerLink="/orders">View orders</a>
     </div>
   </div>
 }

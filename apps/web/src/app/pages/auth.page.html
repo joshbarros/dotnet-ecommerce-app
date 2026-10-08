@@ -82,8 +82,11 @@
         }
       </label>
     }
-    <button class="button full-width" type="submit">
-      {{ register() ? 'Create demo profile →' : 'Enter demo account →' }}
+    @if (error()) {
+      <p role="alert" class="field-error">{{ error() }}</p>
+    }
+    <button class="button full-width" type="submit" [disabled]="busy()">
+      {{ busy() ? 'Working…' : register() ? 'Create demo profile →' : 'Enter demo account →' }}
     </button>
     <p class="auth-switch">
       {{ register() ? 'Already exploring?' : 'New to DevStore?' }}

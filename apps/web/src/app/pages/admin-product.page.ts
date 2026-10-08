@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 import { StoreService } from '../core/store.service';
 import { Product } from '../core/models';
 
@@ -16,6 +17,7 @@ export class AdminProductPage {
   readonly product = this.id === undefined ? undefined : this.store.product(this.id);
   readonly missing = this.id !== undefined && !this.product;
   readonly submitted = signal(false);
+  readonly busy = signal(false);
   readonly error = signal('');
   readonly form = this.fb.group({
     name: [
@@ -39,21 +41,33 @@ export class AdminProductPage {
     ],
     featured: [this.product?.featured ?? false],
   });
-  save() {
+  async save() {
     this.submitted.set(true);
     this.form.markAllAsTouched();
+    this.error.set('');
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
-    const result = this.store.saveProduct(
-      {
-        ...raw,
-        name: raw.name.trim(),
-        description: raw.description.trim(),
-        kind: raw.kind as Product['kind'],
-      },
-      this.id,
-    );
-    if (result.ok) void this.router.navigate(['/admin/products']);
-    else this.error.set(result.message);
+    const input = {
+      ...raw,
+      name: raw.name.trim(),
+      description: raw.description.trim(),
+      kind: raw.kind as Product['kind'],
+    };
+    if (this.store.usingApi) {
+      this.busy.set(true);
+      const result = await lastValueFrom(this.store.saveProductApi(input, this.id));
+      this.busy.set(false);
+      if (!result.ok) {
+        this.error.set(result.message);
+        return;
+      }
+    } else {
+      const result = this.store.saveProduct(input, this.id);
+      if (!result.ok) {
+        this.error.set(result.message);
+        return;
+      }
+    }
+    void this.router.navigate(['/admin/products']);
   }
 }
