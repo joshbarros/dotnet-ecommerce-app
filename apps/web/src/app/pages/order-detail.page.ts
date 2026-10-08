@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -21,4 +21,7 @@ export class OrderDetailPage {
   readonly confirmation = computed(() =>
     this.url().some((segment) => segment.path === 'confirmation'),
   );
+  constructor() {
+    effect(() => this.store.ensureOrder(this.params().get('id') ?? ''));
+  }
 }

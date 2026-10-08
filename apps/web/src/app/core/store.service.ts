@@ -1,8 +1,12 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { computed, Injectable, Optional, signal } from '@angular/core';
-import { ApiService } from './api.service';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
+import { ApiService, toOrder } from './api.service';
 import { useApi } from './api-config';
 import { INITIAL_PRODUCTS } from './catalog.data';
 import { CartLine, DeliveryAddress, Order, Product, Profile, StoreResult } from './models';
+
+export type OrderResult = { ok: true; order: Order } | { ok: false; message: string };
 
 const STORAGE_KEY = 'devstore.demo.v1';
 interface SavedState {
@@ -102,7 +106,10 @@ const money = (value: number) => Math.round((value + Number.EPSILON) * 100) / 10
 @Injectable({ providedIn: 'root' })
 export class StoreService {
   constructor(@Optional() private readonly api?: ApiService) {
-    if (this.usingApi && this.api) this.reloadCatalog();
+    if (this.usingApi && this.api) {
+      this.reloadCatalog();
+      this.reloadOrders();
+    }
   }
 
   readonly usingApi = useApi;
@@ -160,6 +167,82 @@ export class StoreService {
       },
       error: () => this.catalogState.set('error'),
     });
+  }
+
+  readonly orderState = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  private orderKey: string | null = null;
+
+  reloadOrders(): void {
+    if (!this.usingApi || !this.api) return;
+    this.orderState.set('loading');
+    this.api.listOrders().subscribe({
+      next: (summaries) =>
+        forkJoin(
+          summaries.map((summary) => this.api!.order(summary.id).pipe(map(toOrder))),
+        ).subscribe({
+          next: (orders) => {
+            this.orders.set(orders);
+            this.orderState.set('ready');
+          },
+          error: () => {
+            this.orderState.set('error');
+            this.notice.set('Could not load your orders.');
+          },
+        }),
+      error: () => {
+        this.orderState.set('error');
+        this.notice.set('Could not load your orders.');
+      },
+    });
+  }
+
+  ensureOrder(id: string): void {
+    if (!this.usingApi || this.orders().some((o) => o.id === id)) return;
+    this.api!.order(Number(id)).subscribe({
+      next: (dto) => {
+        const order = toOrder(dto);
+        this.orders.update((list) =>
+          list.some((o) => o.id === order.id) ? list : [...list, order],
+        );
+        this.orderState.set('ready');
+      },
+      error: () => this.orderState.set('error'),
+    });
+  }
+
+  placeOrderApi(delivery: DeliveryAddress): Observable<OrderResult> {
+    const lines = this.cart().map(({ productId, quantity }) => ({ productId, quantity }));
+    if (!lines.length) {
+      this.notice.set('Your cart is empty.');
+      return of({ ok: false, message: 'Your cart is empty.' } as const);
+    }
+    this.orderKey ??= 'idem-' + crypto.randomUUID();
+    return this.api!.createOrder(lines, delivery, this.orderKey).pipe(
+      map((dto) => {
+        const order = toOrder(dto);
+        this.orders.update((list) => [order, ...list.filter((o) => o.id !== order.id)]);
+        this.products.update((list) =>
+          list.map((p) => {
+            const line = lines.find((l) => l.productId === p.id);
+            return line ? { ...p, stock: Math.max(0, p.stock - line.quantity) } : p;
+          }),
+        );
+        this.cart.set([]);
+        this.orderKey = null;
+        this.orderState.set('ready');
+        this.persist();
+        this.notice.set('Order confirmed.');
+        return { ok: true, order: order } as const;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        const message =
+          error.status === 409
+            ? 'An item ran out of stock. Review your cart and try again.'
+            : (error.error?.detail ?? 'The shop could not place your order.');
+        this.notice.set(message);
+        return of({ ok: false, message } as const);
+      }),
+    );
   }
 
   private normalizeCart(lines: CartLine[]): CartLine[] {

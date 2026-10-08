@@ -6,7 +6,20 @@
   </h1>
   <p>Orders saved in this browser, including guest orders. No real purchases.</p>
 </div>
-@if (store.orders().length) {
+@if (store.usingApi && store.orderState() === 'loading') {
+  <div class="empty-state">
+    <span class="empty-icon">◇</span>
+    <h2>Loading your orders…</h2>
+    <p>Fetching your order history from the API.</p>
+  </div>
+} @else if (store.usingApi && store.orderState() === 'error') {
+  <div class="empty-state">
+    <span class="empty-icon">!</span>
+    <h2>Could not load your orders.</h2>
+    <p>The API did not respond or you are not signed in.</p>
+    <button class="button button-outline" (click)="store.reloadOrders()">Try again</button>
+  </div>
+} @else if (store.orders().length) {
   <div class="order-list">
     @for (order of store.orders(); track order.id) {
       <a class="order-card" [routerLink]="['/orders', order.id]">

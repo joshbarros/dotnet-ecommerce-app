@@ -2,6 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
+import { DeliveryAddress } from '../core/models';
 import { StoreService } from '../core/store.service';
 
 @Component({
@@ -31,7 +33,7 @@ export class CheckoutPage {
     const control = this.form.get(field);
     return !!control?.invalid && (control.touched || this.submitted());
   }
-  submit() {
+  async submit() {
     if (this.submitting()) return;
     this.submitted.set(true);
     this.form.markAllAsTouched();
@@ -39,14 +41,17 @@ export class CheckoutPage {
     if (this.form.invalid) return;
     this.submitting.set(true);
     const { accept, ...delivery } = this.form.getRawValue();
-    const result = this.store.placeOrder({
+    const address: DeliveryAddress = {
       ...delivery,
       name: delivery.name.trim(),
       email: delivery.email.trim(),
       street: delivery.street.trim(),
       city: delivery.city.trim(),
       state: delivery.state.toUpperCase(),
-    });
+    };
+    const result = this.store.usingApi
+      ? await lastValueFrom(this.store.placeOrderApi(address))
+      : this.store.placeOrder(address);
     if (result.ok) {
       void this.router.navigate(['/orders', result.order.id, 'confirmation']);
     } else {

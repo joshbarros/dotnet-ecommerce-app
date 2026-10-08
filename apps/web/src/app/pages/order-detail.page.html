@@ -1,4 +1,15 @@
-@if (order(); as order) {
+@if (store.usingApi && store.orderState() === 'loading') {
+  <div class="empty-state">
+    <h1>Loading…</h1>
+    <p>Fetching this order from the API.</p>
+  </div>
+} @else if (store.usingApi && store.orderState() === 'error') {
+  <div class="empty-state">
+    <h1>Could not load this order.</h1>
+    <p>The API did not respond or you are not signed in.</p>
+    <a class="button" routerLink="/orders">Back to your orders</a>
+  </div>
+} @else if (order(); as order) {
   <div class="page-heading" [class.centered]="confirmation()">
     @if (confirmation()) {
       <span class="success-mark">✓</span>
