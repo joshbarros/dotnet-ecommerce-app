@@ -48,17 +48,16 @@ WEB_BASE_URL=http://localhost:4200 npm run test:smoke
 
 ## Docker
 
+Start the full stack (web + database + API) with:
+
 ```bash
 docker compose config --quiet
-docker compose up --build --detach --wait
-WEB_BASE_URL=http://localhost:8080 npm run test:smoke
+docker compose --profile backend up --build --detach --wait
 ```
 
-Open http://localhost:8080. Only web starts by default and its health check verifies Nginx. The web build stage includes Node and .NET for Nx project discovery. The final web image contains static files and unprivileged Nginx, with the port bound to loopback.
+Open http://localhost:8080 for the web app and http://localhost:5207/scalar/v1 for the API docs (OpenAPI). The `db` service is a Postgres container with a named volume; the API applies EF migrations on startup and passes a `/api/health` health check. The web build stage includes Node and .NET for Nx project discovery, and Nginx proxies `/api/` to the API service. To run only the web + database (no API), use the default `docker compose up --build --detach --wait`.
 
-The API service is behind the `backend` Compose profile. **Do not start it while the API is an empty library.** After implementing `Program.cs` and removing `OutputType=Library`, use `docker compose --profile backend up --build --detach --wait`. Nginx already reserves `/api/` for the API proxy, rather than returning the SPA document for those requests. Until the API exists, these routes can return 502.
-
-Copy `.env.example` to `.env` to change `WEB_PORT`. Stop the current frontend with `npm run docker:down`. If an old catalog API container remains from the earlier checkpoint, stop it with `docker compose stop api`.
+Copy `.env.example` to `.env` to change `WEB_PORT`. Stop the stack with `npm run docker:down` (`docker compose down`) or `docker compose stop api`.
 
 ## Pages
 
@@ -89,7 +88,7 @@ source scripts/dev-env.sh
 npm run dev:api
 ```
 
-The database is created and migrated automatically on startup; the development seeder adds an `Admin` role, an admin user (`admin@devstore.local` / `DevStoreAdmin!42`) and nine products. API contracts are documented in [docs/api-contracts.md](docs/api-contracts.md). The original implementation workbook is preserved at [docs/backend-roadmap.md](docs/backend-roadmap.md) for reference.
+The database is created and migrated automatically on startup; the development seeder adds an `Admin` role, an admin user (`admin@devstore.local` / `DevStoreAdmin!42`) and nine products. Live API documentation is served by the app itself: OpenAPI JSON at `/openapi/v1.json` and an interactive Scalar reference at `/scalar/v1`. API contracts are documented in [docs/api-contracts.md](docs/api-contracts.md). The original implementation workbook is preserved at [docs/backend-roadmap.md](docs/backend-roadmap.md) for reference.
 
 To run the frontend against the real API instead of the local demo, enable API mode by setting the `devstore.api` value to `true` in the browser's localStorage (or set `useApi` to `true` in `apps/web/src/app/core/api-config.ts`). Sign in as the seeded admin to use the management screens.
 
@@ -125,6 +124,6 @@ Once your API has an entry point, open `Ecommerce.sln` in C# Dev Kit. Start Angu
 
 Frontend tests execute the actual Angular store and login/registration form logic using Node, TypeScript transpilation and the Angular runtime. HTTP smoke tests request the SPA document at each route; they do not execute page components or prove visual behavior. `npm run test:api:smoke` covers the public API contract. `dotnet test tests/api` runs 19 integration tests against a dedicated `ecommerce_test` database (catalog contract, auth/session rules, order pricing/idempotency and competing-stock races).
 
-See [validation](docs/validation.md) and [manual frontend checklist](docs/frontend-checklist.md). No connected browser was available for visual verification during development; desktop/mobile review and end-to-end browser interaction remain outstanding. No screenshot is claimed.
+See [validation](docs/validation.md) and [manual frontend checklist](docs/frontend-checklist.md). No connected browser was available for visual verification during development; desktop/mobile review and end-to-end browser interaction remain outstanding. No screenshot is claimed. On every push, the GitHub Actions workflow runs formatting checks, the .NET integration suite against a Postgres service, the frontend rules tests, the API contract smoke test and the Playwright browser test.
 
 The backend now supports server-side persistence, authentication/authorization, server-validated pricing and stock, transactional order creation and idempotency. Still at demo level: there is no real payment processing, emailing or fulfillment, order status transitions on the server are not yet exposed, and the frontend defaults to local demo mode rather than the API.

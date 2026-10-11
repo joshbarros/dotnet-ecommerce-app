@@ -1,8 +1,22 @@
-name: Frontend and learning scaffold
+name: CI
 on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: ecommerce_test
+          POSTGRES_USER: devstore
+          POSTGRES_PASSWORD: devstore
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devstore"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -13,13 +27,22 @@ jobs:
         with:
           global-json-file: global.json
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: dotnet restore Ecommerce.sln
       - run: npm run format:check
+      - run: dotnet test tests/api/Ecommerce.Api.Tests.csproj
       - run: npm run build
       - run: npm run test:frontend
-      - run: docker compose up --build --detach --wait
-      - run: npm run test:smoke
+      - name: Start API for contract and browser checks
         env:
-          WEB_BASE_URL: http://localhost:8080
-      - if: always()
-        run: docker compose logs && docker compose down
+          ASPNETCORE_ENVIRONMENT: Development
+          ConnectionStrings__Store: "Host=localhost;Port=5432;Database=ecommerce;Username=devstore;Password=devstore"
+        run: |
+          dotnet run --project apps/api/Ecommerce.Api.csproj --no-launch-profile --urls http://localhost:5207 > /tmp/api.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5207/api/health && exit 0
+            sleep 2
+          done
+          echo "API did not become healthy" && cat /tmp/api.log && exit 1
+      - run: npm run test:api:smoke
+      - run: npm run test:e2e

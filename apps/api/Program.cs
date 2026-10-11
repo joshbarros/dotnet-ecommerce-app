@@ -3,11 +3,13 @@ using Ecommerce.Api.Models;
 using Ecommerce.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
+builder.Services.AddOpenApi();
 builder.Services.AddScoped<OrderService>();
 
 var connectionString = builder.Configuration.GetConnectionString("Store")
@@ -47,6 +49,8 @@ app.UseMiddleware<Ecommerce.Api.Middleware.ExceptionHandler>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.MapGet("/api/health", () => Results.Text("Healthy"));
 
