@@ -26,8 +26,11 @@ export class AdminPage {
     this.pendingDelete.set(null);
   }
   status(id: string, value: string) {
-    if (this.store.usingApi) return;
-    if (['Confirmed', 'Preparing', 'Shipped'].includes(value))
+    if (!['Confirmed', 'Preparing', 'Shipped'].includes(value)) return;
+    if (this.store.usingApi) {
+      this.store.updateOrderStatusApi(id, value as Order['status']).subscribe();
+    } else {
       this.store.updateOrder(id, value as Order['status']);
+    }
   }
 }

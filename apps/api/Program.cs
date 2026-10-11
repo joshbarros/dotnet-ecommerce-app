@@ -43,7 +43,7 @@ builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseMiddleware<Ecommerce.Api.Middleware.ExceptionHandler>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -110,6 +110,9 @@ export class ApiService {
   order(id: number) {
     return this.http.get<OrderDto>(`/api/orders/${id}`);
   }
+  updateOrderStatus(id: number, status: string) {
+    return this.http.patch<OrderDto>(`/api/admin/orders/${id}/status`, { status });
+  }
 
   createProduct(input: Omit<Product, 'id'>) {
     return this.http.post<Product>('/api/admin/products', input);

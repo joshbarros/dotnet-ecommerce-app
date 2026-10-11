@@ -132,4 +132,54 @@ public class OrderServiceTests
         Assert.Equal(3, await db.Products.Where(p => p.Id == productId).Select(p => p.Stock).FirstAsync());
         Assert.Equal(1, await db.Orders.CountAsync());
     }
+
+    [Fact]
+    public async Task UpdateStatus_AdvancesOneStep()
+    {
+        var productId = await SeedProductAsync(10m, 5);
+        var service = new OrderService(TestDatabase.Create());
+        var (order, _) = await service.CreateOrderAsync(
+            CustomerId, Idem(), Order([new OrderItemRequest(productId, 1)]));
+
+        var updated = await service.UpdateOrderStatusAsync(order.Id, "Preparing");
+
+        Assert.NotNull(updated);
+        Assert.Equal(OrderStatus.Preparing, updated!.Status);
+    }
+
+    [Fact]
+    public async Task UpdateStatus_BackwardIsRejected()
+    {
+        var productId = await SeedProductAsync(10m, 5);
+        var service = new OrderService(TestDatabase.Create());
+        var (order, _) = await service.CreateOrderAsync(
+            CustomerId, Idem(), Order([new OrderItemRequest(productId, 1)]));
+
+        await service.UpdateOrderStatusAsync(order.Id, "Preparing");
+
+        await Assert.ThrowsAsync<OrderValidationException>(
+            () => service.UpdateOrderStatusAsync(order.Id, "Confirmed"));
+    }
+
+    [Fact]
+    public async Task UpdateStatus_UnknownStatusIsRejected()
+    {
+        var productId = await SeedProductAsync(10m, 5);
+        var service = new OrderService(TestDatabase.Create());
+        var (order, _) = await service.CreateOrderAsync(
+            CustomerId, Idem(), Order([new OrderItemRequest(productId, 1)]));
+
+        await Assert.ThrowsAsync<OrderValidationException>(
+            () => service.UpdateOrderStatusAsync(order.Id, "Delivered"));
+    }
+
+    [Fact]
+    public async Task UpdateStatus_MissingOrderReturnsNull()
+    {
+        var service = new OrderService(TestDatabase.Create());
+
+        var result = await service.UpdateOrderStatusAsync(999999, "Preparing");
+
+        Assert.Null(result);
+    }
 }

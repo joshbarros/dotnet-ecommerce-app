@@ -111,6 +111,26 @@ public class OrderService(StoreDbContext db)
 
     private static bool IsUniqueViolation(DbUpdateException ex) =>
         ex.InnerException is PostgresException { SqlState: "23505" };
+
+    public async Task<Order?> UpdateOrderStatusAsync(int id, string status)
+    {
+        if (!Enum.TryParse<OrderStatus>(status, out var target))
+            throw new OrderValidationException("Status must be Confirmed, Preparing or Shipped.");
+
+        var order = await db.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return null;
+
+        if ((int)target != (int)order.Status + 1)
+            throw new OrderValidationException(
+                $"Cannot change status from {order.Status} to {target}.");
+
+        order.Status = target;
+        await db.SaveChangesAsync();
+        return order;
+    }
 }
 
 public class OrderValidationException(string message) : Exception(message);

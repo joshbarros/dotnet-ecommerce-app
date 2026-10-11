@@ -368,6 +368,22 @@ export class StoreService {
     );
   }
 
+  updateOrderStatusApi(id: string, status: Order['status']): Observable<AuthResult> {
+    return this.api!.updateOrderStatus(Number(id), status).pipe(
+      map((dto) => {
+        const order = toOrder(dto);
+        this.orders.update((list) => list.map((o) => (o.id === order.id ? order : o)));
+        return { ok: true } as const;
+      }),
+      catchError((error: HttpErrorResponse) =>
+        of<AuthResult>({
+          ok: false,
+          message: error.error?.detail ?? 'Could not update the order status.',
+        }),
+      ),
+    );
+  }
+
   private normalizeCart(lines: CartLine[]): CartLine[] {
     const merged = new Map<number, number>();
     for (const line of lines)
