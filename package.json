@@ -19,7 +19,8 @@
     "format:api": "dotnet format whitespace Ecommerce.sln --no-restore",
     "format:api:check": "dotnet format whitespace Ecommerce.sln --no-restore --verify-no-changes",
     "test:frontend": "node --test tests/frontend.rules.test.mjs",
-    "test:api:smoke": "node --test tests/api.smoke.test.mjs"
+    "test:api:smoke": "node --test tests/api.smoke.test.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@angular/common": "21.2.25",
@@ -37,6 +38,7 @@
     "@nx/angular": "23.2.1",
     "@nx/dotnet": "23.2.1",
     "@nx/workspace": "23.2.1",
+    "@playwright/test": "^1.64.0",
     "nx": "23.2.1",
     "prettier": "3.6.2",
     "typescript": "5.9.3"

@@ -12,3 +12,5 @@ dist/
 
 
 .angular/
+test-results/
+playwright-report/

@@ -153,7 +153,7 @@ export class StoreService {
 
   reloadCatalog(): void {
     this.catalogState.set('loading');
-    this.api!.products({ pageSize: 100 }).subscribe({
+    this.api!.products({ pageSize: 50 }).subscribe({
       next: (page) => {
         this.products.set(page.items);
         this.cart.set(this.normalizeCart(this.cart()));

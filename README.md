@@ -44,7 +44,7 @@ npm run test:frontend
 WEB_BASE_URL=http://localhost:4200 npm run test:smoke
 ```
 
-`npm run build` compiles Angular and the empty API library. `dotnet build Ecommerce.sln` additionally compiles the empty future test project. This proves the scaffold is syntactically buildable, not that API functionality exists.
+`npm run build` compiles Angular and the API. `npm run test:frontend` runs the store rules against the real Angular logic. `test:smoke` checks the SPA serves each route. With Postgres and the API running, `npm run test:e2e` runs a Playwright browser test in API mode covering search → detail → cart → checkout → persisted order.
 
 ## Docker
 
@@ -91,7 +91,7 @@ npm run dev:api
 
 The database is created and migrated automatically on startup; the development seeder adds an `Admin` role, an admin user (`admin@devstore.local` / `DevStoreAdmin!42`) and nine products. API contracts are documented in [docs/api-contracts.md](docs/api-contracts.md). The original implementation workbook is preserved at [docs/backend-roadmap.md](docs/backend-roadmap.md) for reference.
 
-To run the frontend against the real API instead of the local demo, set `useApi = true` in `apps/web/src/app/core/api-config.ts`. Sign in as the seeded admin to use the management screens.
+To run the frontend against the real API instead of the local demo, enable API mode by setting the `devstore.api` value to `true` in the browser's localStorage (or set `useApi` to `true` in `apps/web/src/app/core/api-config.ts`). Sign in as the seeded admin to use the management screens.
 
 ## Source map
 

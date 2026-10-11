@@ -61,7 +61,8 @@ export interface RegisterInput {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  readonly csrfToken = signal<string>('');
+  private static readonly CsrfStorageKey = 'devstore.csrf';
+  readonly csrfToken = signal<string>(localStorage.getItem(ApiService.CsrfStorageKey) ?? '');
 
   constructor(private readonly http: HttpClient) {}
 
@@ -85,7 +86,12 @@ export class ApiService {
       .pipe(tap((r) => this.captureCsrf(r)));
   }
   logout() {
-    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.csrfToken.set('')));
+    return this.http.post('/api/auth/logout', {}).pipe(
+      tap(() => {
+        this.csrfToken.set('');
+        localStorage.removeItem(ApiService.CsrfStorageKey);
+      }),
+    );
   }
   account() {
     return this.http.get<CustomerDto>('/api/account');
@@ -126,7 +132,9 @@ export class ApiService {
 
   private captureCsrf(r: HttpResponse<CustomerDto>): void {
     const token = r.headers.get('X-CSRF-TOKEN');
-    if (token) this.csrfToken.set(token);
+    if (!token) return;
+    this.csrfToken.set(token);
+    localStorage.setItem(ApiService.CsrfStorageKey, token);
   }
 }
 
